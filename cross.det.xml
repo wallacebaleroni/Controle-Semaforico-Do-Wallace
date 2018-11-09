@@ -1,0 +1,4 @@
+<add>
+	<e1Detector id="0" lane="4i_0" pos="450" freq="30" file="cross.out" friendlyPos="x"/>
+	<laneAreaDetector id="1" lane="4i_0" pos="450" endPos="495" freq="30" file="cross2.out"/>
+</add>
