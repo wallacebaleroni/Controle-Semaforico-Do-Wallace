@@ -31,8 +31,8 @@ VRHY = 3  # vertical red    horizontal yellow
 
 class DQNAgent:
     def __init__(self):
-        self.gamma = 0.95   # discount rate
-        self.epsilon = 0.1  # exploration rate
+        self.gamma = 0.95  # Discount rate
+        self.epsilon = 0.1  # Exploration rate
         self.learning_rate = 0.0002
         self.memory = deque(maxlen=200)
         self.model = self._build_model()
@@ -129,12 +129,12 @@ class SumoIntersection:
         p_down = 1. / 15
 
         with open("cross.rou.xml", "w") as routes:
-            print('''<routes>
-\t<vType id="SUMO_DEFAULT_TYPE" accel="0.8" decel="4.5" sigma="0" length="5" minGap="2" maxSpeed="70"/>
-\t\t<route id="right" edges="51o 1i 2o 52i" />
-\t\t<route id="left"  edges="52o 2i 1o 51i" />
-\t\t<route id="down"  edges="54o 4i 3o 53i" />
-\t\t<route id="up"    edges="53o 3i 4o 54i" />\n''', file=routes)
+            print('''<routes>''', file=routes)
+            print('''\t<vType id="SUMO_DEFAULT_TYPE" accel="0.8" decel="4.5" sigma="0" length="5" minGap="2" maxSpeed="70"/>''', file=routes)
+            print('''\t\t<route id="right" edges="51o 1i 2o 52i"/>''', file=routes)
+            print('''\t\t<route id="left"  edges="52o 2i 1o 51i"/>''', file=routes)
+            print('''\t\t<route id="down"  edges="54o 4i 3o 53i"/>''', file=routes)
+            print('''\t\t<route id="up"    edges="53o 3i 4o 54i"/>\n''', file=routes)
 
             vehicle_n = 0
             # Generates for each timestep vehicles entering
@@ -148,7 +148,7 @@ class SumoIntersection:
                         vehicle_n, i), file=routes)
                     vehicle_n += 1
                 if random.uniform(0, 1) < p_down:
-                    print('\t\t<vehicle id="up_%i"\ttype="SUMO_DEFAULT_TYPE" route="up"\tdepart="%i"/>' % (
+                    print('\t\t<vehicle id="up_%i"  \ttype="SUMO_DEFAULT_TYPE" route="up"\t\tdepart="%i"/>' % (
                         vehicle_n, i), file=routes)
                     vehicle_n += 1
                 if random.uniform(0, 1) < p_up:
@@ -373,9 +373,8 @@ if __name__ == '__main__':
         epi_time = epi_end_time - epi_start_time
         time_mean = ((time_mean * e) + epi_time) / (e + 1)
 
-        print("Episode: %d\tTotal waiting time: %d\n\tEpisode lenght: %d seconds\tExpected sim end in: %d seconds" % (e, waiting_time, epi_time, (time_mean * ((episodes - e) - 1))))
-
-        log.write("Episode: %d\tTotal waiting time: %d\n" % (e, waiting_time))
+        print("Episode: %d\n\tTotal waiting time: %d seconds\n\tEpisode lenght: %d seconds\n\tExpected sim end in: %d minutes" % (e + 1, waiting_time, epi_time, (time_mean * ((episodes - e) - 1)) / 60))
+        log.write("Episode: %d \tTotal waiting time: %d\n" % (e + 1, waiting_time))
         log.close()
 
         traci.close(wait=False)
