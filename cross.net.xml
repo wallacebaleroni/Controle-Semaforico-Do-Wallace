@@ -1,30 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!-- generated on Thu Mar 26 16:23:52 2015 by SUMO netconvert Version dev-SVN-r18156I
-This data file and the accompanying materials
-are made available under the terms of the Eclipse Public License v2.0
-which accompanies this distribution, and is available at
-http://www.eclipse.org/legal/epl-v20.html
-SPDX-License-Identifier: EPL-2.0
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
-
-    <input>
-        <node-files value="./complex/tutorial/traci_tls/data/cross.nod.xml"/>
-        <edge-files value="./complex/tutorial/traci_tls/data/cross.edg.xml"/>
-        <connection-files value="./complex/tutorial/traci_tls/data/cross.con.xml"/>
-    </input>
-
-    <output>
-        <output-file value="./complex/tutorial/traci_tls/data/cross.net.xml"/>
-    </output>
-
-    <report>
-        <verbose value="true"/>
-    </report>
-
-</configuration>
--->
-
 <net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="510.00,510.00" convBoundary="0.00,0.00,1020.00,1020.00" origBoundary="-510.00,-510.00,510.00,510.00" projParameter="!"/>

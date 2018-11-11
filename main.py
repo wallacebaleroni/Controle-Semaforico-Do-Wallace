@@ -2,25 +2,32 @@ from sumolib import checkBinary
 
 import os
 import sys
+import time
 import optparse
+from collections import deque
 import random
-import traci
 import numpy as np
 import keras
 from keras.layers import Input, Conv2D, Flatten, Dense
 from keras.models import Model
-from collections import deque
+import traci
 
-# Constantes
+# Constraints
 X = 0
-Y = 0
-JUNCAO_PRINCIPAL = '0'
-SEMAFORO_PRINCIPAL = '0'
+Y = 1
+MAIN_JUNCTION = '0'
+MAIN_SEMAPHORE = '0'
 
-HRVGLG = 0  # w: horizontal red, vertical green and left turn green
-HRVYLG = 1  # w: horizontal red, vertical yellow and left turn green
-HRVRLG = 2  # w: horizontal red, vertical red and left turn green
-HRVRLY = 3  # w: horizontal red, vertical red and left turn yellow
+LEFT_EDGE = '1i'
+RIGHT_EDGE = '2i'
+BOTTOM_EDGE = '3i'
+UPPER_EDGE = '4i'
+
+VGHR = 0  # vertical green  horizontal red
+VYHR = 1  # vertical yellow horizontal red
+VRHG = 2  # vertical red    horizontal green
+VRHY = 3  # vertical red    horizontal yellow
+
 
 class DQNAgent:
     def __init__(self):
@@ -34,35 +41,35 @@ class DQNAgent:
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
 
-        # w: position P
+        # Position P
         input_1 = Input(shape=(12, 12, 1))
-        # w: primeira camada P
+        # First layer P
         x1 = Conv2D(16, (4, 4), strides=(2, 2), activation='relu')(input_1)
-        # w: segunda camada P
+        # Second layer P
         x1 = Conv2D(32, (2, 2), strides=(1, 1), activation='relu')(x1)
-        # w: parte da terceira camada
+        # Part of the third layer
         x1 = Flatten()(x1)
 
-        # w: speed V
+        # Speed V
         input_2 = Input(shape=(12, 12, 1))
-        # w: primeira camada V
+        # First layer V
         x2 = Conv2D(16, (4, 4), strides=(2, 2), activation='relu')(input_2)
-        # w: segunda camada V
+        # Second layer V
         x2 = Conv2D(32, (2, 2), strides=(1, 1), activation='relu')(x2)
-        # w: parte da terceira camada
+        # Part of the third layer
         x2 = Flatten()(x2)
 
-        # w: latest traffic signal state L
+        # Latest traffic signal state L
         input_3 = Input(shape=(2, 1))
-        # w: parte da terceira camada
+        # Part of the third layer
         x3 = Flatten()(input_3)
 
         x = keras.layers.concatenate([x1, x2, x3])
-        # w: terceira camada
+        # Third layer
         x = Dense(128, activation='relu')(x)
-        # w: quarta camada
+        # Forth layer
         x = Dense(64, activation='relu')(x)
-        # w: camada de saída
+        # Output layer
         x = Dense(2, activation='linear')(x)
 
         model = Model(inputs=[input_1, input_2, input_3], outputs=[x])
@@ -79,7 +86,7 @@ class DQNAgent:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
 
-        return np.argmax(act_values[0])  # returns action
+        return np.argmax(act_values[0])  # Returns action
 
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
@@ -99,140 +106,112 @@ class DQNAgent:
         self.model.save_weights(name)
 
 
-
-
 class SumoIntersection:
     def __init__(self):
-        # we need to import python modules from the $SUMO_HOME/tools directory
+        # We need to import python modules from the $SUMO_HOME/tools directory
         try:
             sys.path.append(os.path.join(os.path.dirname(
-                __file__), '..', '..', '..', '..', "tools"))  # tutorial in tests
+                __file__), '..', '..', '..', '..', "tools"))  # Tutorial in tests
             sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(
-                os.path.dirname(__file__), "..", "..", "..")), "tools"))  # tutorial in docs
+                os.path.dirname(__file__), "..", "..", "..")), "tools"))  # Tutorial in docs
             from sumolib import checkBinary  # noqa
         except ImportError:
             sys.exit(
                 "please declare environment variable 'SUMO_HOME' as the root directory of your sumo installation (it should contain folders 'bin', 'tools' and 'docs')")
 
     def generate_routefile(self):
-        random.seed(42)  # make tests reproducible
-        N = 3600  # number of time steps
-        # demand per second from different directions
-        pRight = 1. / 15
-        pLeft = 1. / 15
-        pUp = 1. / 15
-        pDown = 1. / 15
+        random.seed(42)  # Make tests reproducible
+        episode_timesteps = 3600  # Number of time steps per episode
+        # Demand per second from different directions
+        p_right = 1. / 15
+        p_left = 1. / 15
+        p_up = 1. / 15
+        p_down = 1. / 15
+
         with open("cross.rou.xml", "w") as routes:
             print('''<routes>
-        <vType id="SUMO_DEFAULT_TYPE" accel="0.8" decel="4.5" sigma="0" length="5" minGap="2" maxSpeed="70"/>
+\t<vType id="SUMO_DEFAULT_TYPE" accel="0.8" decel="4.5" sigma="0" length="5" minGap="2" maxSpeed="70"/>
+\t\t<route id="right" edges="51o 1i 2o 52i" />
+\t\t<route id="left"  edges="52o 2i 1o 51i" />
+\t\t<route id="down"  edges="54o 4i 3o 53i" />
+\t\t<route id="up"    edges="53o 3i 4o 54i" />\n''', file=routes)
 
-        <route id="right" edges="51o 1i 2o 52i" />
-        <route id="left"  edges="52o 2i 1o 51i" />
-        <route id="down"  edges="54o 4i 3o 53i" />
-        <route id="up"    edges="53o 3i 4o 54i" />
-
-    ''', file=routes)
-            lastVeh = 0
-            vehNr = 0
-            # w: pra cada timestep gera probalisticamente se um veículo vai vir de uma das direções
-            for i in range(N):
-                if random.uniform(0, 1) < pRight:
-                    print('    <vehicle id="right_%i" type="SUMO_DEFAULT_TYPE" route="right" depart="%i" />' % (
-                        vehNr, i), file=routes)
-                    vehNr += 1
-                    lastVeh = i
-                    lastVeh = i
-                if random.uniform(0, 1) < pLeft:
-                    print('    <vehicle id="left_%i"  type="SUMO_DEFAULT_TYPE" route="left"  depart="%i" />' % (
-                        vehNr, i), file=routes)
-                    vehNr += 1
-                    lastVeh = i
-                if random.uniform(0, 1) < pDown:
-                    print('    <vehicle id="up_%i"    type="SUMO_DEFAULT_TYPE" route="up"    depart="%i"/>' % (
-                        vehNr, i), file=routes)
-                    vehNr += 1
-                    lastVeh = i
-                if random.uniform(0, 1) < pUp:
-                    print('    <vehicle id="down_%i"  type="SUMO_DEFAULT_TYPE" route="down"  depart="%i"/>' % (
-                        vehNr, i), file=routes)
-                    vehNr += 1
-                    lastVeh = i
+            vehicle_n = 0
+            # Generates for each timestep vehicles entering
+            for i in range(episode_timesteps):
+                if random.uniform(0, 1) < p_right:
+                    print('\t\t<vehicle id="right_%i"\ttype="SUMO_DEFAULT_TYPE" route="right"\tdepart="%i" />' % (
+                        vehicle_n, i), file=routes)
+                    vehicle_n += 1
+                if random.uniform(0, 1) < p_left:
+                    print('\t\t<vehicle id="left_%i"\ttype="SUMO_DEFAULT_TYPE" route="left"\tdepart="%i" />' % (
+                        vehicle_n, i), file=routes)
+                    vehicle_n += 1
+                if random.uniform(0, 1) < p_down:
+                    print('\t\t<vehicle id="up_%i"\ttype="SUMO_DEFAULT_TYPE" route="up"\tdepart="%i"/>' % (
+                        vehicle_n, i), file=routes)
+                    vehicle_n += 1
+                if random.uniform(0, 1) < p_up:
+                    print('\t\t<vehicle id="down_%i"\ttype="SUMO_DEFAULT_TYPE" route="down"\tdepart="%i"/>' % (
+                        vehicle_n, i), file=routes)
+                    vehicle_n += 1
             print("</routes>", file=routes)
 
     def get_options(self):
-        optParser = optparse.OptionParser()
-        optParser.add_option("--nogui", action="store_true",
-                             default=False, help="run the commandline version of sumo")
-        options, args = optParser.parse_args()
+        opt_parser = optparse.OptionParser()
+        opt_parser.add_option("--nogui", action="store_true", default=False, help="run the commandline version of sumo")
+        options, args = opt_parser.parse_args()
         return options
 
-    def getState(self):
-        positionMatrix = []
-        velocityMatrix = []
+    def get_state(self):
+        position_matrix = np.zeros((12, 12))
+        velocity_matrix = np.zeros((12, 12))
 
-        cellLength = 7
-        offset = 11
-        speedLimit = 14
+        cell_length = 7
+        offset = 5  # Junction radius
+        speed_limit = 14
 
-        junctionPosition = traci.junction.getPosition('0')[X]
-        list = traci.edge.getIDList()
+        junction_position = traci.junction.getPosition(MAIN_JUNCTION)[X]
         vehicles_road1 = traci.edge.getLastStepVehicleIDs('1i')
         vehicles_road2 = traci.edge.getLastStepVehicleIDs('2i')
         vehicles_road3 = traci.edge.getLastStepVehicleIDs('3i')
         vehicles_road4 = traci.edge.getLastStepVehicleIDs('4i')
 
-        # w: inicializa matriz 12x12 com 0
-        for i in range(12):
-            positionMatrix.append([])
-            velocityMatrix.append([])
-            for j in range(12):
-                positionMatrix[i].append(0)
-                velocityMatrix[i].append(0)
-
         for v in vehicles_road1:
-            ind = int(
-                abs((junctionPosition - traci.vehicle.getPosition(v)[X] - offset)) / cellLength)
-            if(ind < 12):
-                positionMatrix[2 - traci.vehicle.getLaneIndex(v)][11 - ind] = 1
-                velocityMatrix[2 - traci.vehicle.getLaneIndex(
-                    v)][11 - ind] = traci.vehicle.getSpeed(v) / speedLimit
+            ind = int(abs(junction_position - offset - traci.vehicle.getPosition(v)[X]) / cell_length)
+            if ind < 4:
+                position_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = 1
+                velocity_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         for v in vehicles_road2:
-            ind = int(
-                abs((junctionPosition - traci.vehicle.getPosition(v)[X] + offset)) / cellLength)
-            if(ind < 12):
-                positionMatrix[3 + traci.vehicle.getLaneIndex(v)][ind] = 1
-                velocityMatrix[3 + traci.vehicle.getLaneIndex(
-                    v)][ind] = traci.vehicle.getSpeed(v) / speedLimit
+            ind = int(abs((junction_position - traci.vehicle.getPosition(v)[X] + offset)) / cell_length)
+            if ind < 4:
+                position_matrix[traci.vehicle.getLaneIndex(v)][ind] = 1
+                velocity_matrix[traci.vehicle.getLaneIndex(v)][ind] = traci.vehicle.getSpeed(v) / speed_limit
 
-        junctionPosition = traci.junction.getPosition('0')[Y]
+        junction_position = traci.junction.getPosition(MAIN_SEMAPHORE)[Y]
         for v in vehicles_road3:
-            ind = int(
-                abs((junctionPosition - traci.vehicle.getPosition(v)[Y] - offset)) / cellLength)
-            if(ind < 12):
-                positionMatrix[6 + 2 -
-                               traci.vehicle.getLaneIndex(v)][11 - ind] = 1
-                velocityMatrix[6 + 2 - traci.vehicle.getLaneIndex(
-                    v)][11 - ind] = traci.vehicle.getSpeed(v) / speedLimit
+            ind = int(abs((junction_position - traci.vehicle.getPosition(v)[Y] - offset)) / cell_length)
+            if ind < 4:
+                position_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = 1
+                velocity_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         for v in vehicles_road4:
-            ind = int(
-                abs((junctionPosition - traci.vehicle.getPosition(v)[Y] + offset)) / cellLength)
-            if(ind < 12):
-                positionMatrix[9 + traci.vehicle.getLaneIndex(v)][ind] = 1
-                velocityMatrix[9 + traci.vehicle.getLaneIndex(
-                    v)][ind] = traci.vehicle.getSpeed(v) / speedLimit
+            ind = int(abs((junction_position - traci.vehicle.getPosition(v)[Y] + offset)) / cell_length)
+            if ind < 4:
+                position_matrix[traci.vehicle.getLaneIndex(v)][ind] = 1
+                velocity_matrix[traci.vehicle.getLaneIndex(v)][ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         light = []
-        if(traci.trafficlight.getPhase(SEMAFORO_PRINCIPAL) == 4):
+        if traci.trafficlight.getPhase(MAIN_SEMAPHORE) == VRHG:
             light = [1, 0]
         else:
             light = [0, 1]
 
-        position = np.array(positionMatrix)
+        position = np.array(position_matrix)
         position = position.reshape(1, 12, 12, 1)
 
-        velocity = np.array(velocityMatrix)
+        velocity = np.array(velocity_matrix)
         velocity = velocity.reshape(1, 12, 12, 1)
 
         lgts = np.array(light)
@@ -240,22 +219,21 @@ class SumoIntersection:
 
         return [position, velocity, lgts]
 
+
 if __name__ == '__main__':
     sumoInt = SumoIntersection()
     # this script has been called from the command line. It will start sumo as a
     # server, then connect and run
     options = sumoInt.get_options()
 
-    if options.nogui:
-    #if True:
+    #if options.nogui:
+    if True:
         sumoBinary = checkBinary('sumo')
     else:
         sumoBinary = checkBinary('sumo-gui')
     sumoInt.generate_routefile()
 
-    # Main logic
-    # parameters
-    episodes = 2000
+    episodes = 100
     batch_size = 32
 
     tg = 10
@@ -266,156 +244,144 @@ if __name__ == '__main__':
     except:
         print('No models found')
 
+    time_mean = 0
+    sim_start_time = time.clock()
+
     for e in range(episodes):
         # DNN Agent
         # Initialize DNN with random weights
         # Initialize target network with same weights as DNN Network
-        #log = open('log.txt', 'a')
         step = 0
         waiting_time = 0
-        reward1 = 0
-        reward2 = 0
-        total_reward = reward1 - reward2
+        reward_moving = 0
+        reward_halting = 0
         stepz = 0
         action = 0
 
-        traci.start([sumoBinary, "-c", "cross3ltl.sumocfg", '--start'])
-        traci.trafficlight.setPhase("0", HRVGLG)
+        log = open('log.txt', 'a')
+        epi_start_time = time.clock()
+
+        traci.start([sumoBinary, "-c", "cross.sumocfg", '--start', '--quit-on-end'])
+        traci.trafficlight.setPhase("0", 0)
         traci.trafficlight.setPhaseDuration("0", 200)
-        while traci.simulation.getMinExpectedNumber() > 0 and stepz < 3500:
+
+        while traci.simulation.getMinExpectedNumber() > 0 and stepz < 3600:
             traci.simulationStep()
-            state = sumoInt.getState()
+            state = sumoInt.get_state()
             action = agent.act(state)
-            light = state[2]
+            horizontal_light_state = state[2][0][0][0]
 
-        traci.trafficlight.setPhase('0', 0)
-        traci.simulationStep()
-
-        traci.close(wait=False)
-
-'''
-            if(action == 0 and light[0][0][0] == 0):  # w: light = 1x2x1, light[0][0][0] == 0 significa que o semáforo horizontal está fechado
-                # Transition Phase
+            # Vertical green -> horizontal green
+            if horizontal_light_state == 0 and action == 0:
+                # Set vertical yellow (transition phase) for 6 timesteps
                 for i in range(6):
-                    stepz += 1
-                    traci.trafficlight.setPhase(SEMAFORO_PRINCIPAL, HRVYLG)
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    traci.trafficlight.setPhase(MAIN_SEMAPHORE, VYHR)  # Vertical yellow, horizontal red
+
+                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
+                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+
                     traci.simulationStep()
+                    stepz += 1
+
+                # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
+                reward_moving = traci.edge.getLastStepVehicleNumber(LEFT_EDGE) + traci.edge.getLastStepVehicleNumber(RIGHT_EDGE)
+                reward_halting = traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE)
+
+                # Set horizontal green (action execution) for 10 timesteps
                 for i in range(10):
-                    stepz += 1
-                    traci.trafficlight.setPhase(SEMAFORO_PRINCIPAL, HRVRLG)
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    traci.trafficlight.setPhase(MAIN_SEMAPHORE, VRHG)  # Vertical red, horizontal green
+
+                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
+                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    # Updates reward
+                    reward_moving += traci.edge.getLastStepVehicleNumber(LEFT_EDGE) + traci.edge.getLastStepVehicleNumber(RIGHT_EDGE)
+                    reward_halting += traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE)
+
                     traci.simulationStep()
+                    stepz += 1
+
+            # Horizontal green -> horizontal green
+            elif horizontal_light_state == 1 and action == 0:
+                reward_moving = traci.edge.getLastStepVehicleNumber('1i') + traci.edge.getLastStepVehicleNumber('2i')
+                reward_halting = traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i')
+
+                # Horizontal green
+                for i in range(10):
+                    traci.trafficlight.setPhase(MAIN_SEMAPHORE, VRHG)
+
+                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
+                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+
+                    reward_moving += traci.edge.getLastStepVehicleNumber('1i') + traci.edge.getLastStepVehicleNumber('2i')
+                    reward_halting += traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i')
+
+                    traci.simulationStep()
+                    stepz += 1
+            # Vertical green -> vertical green
+            elif horizontal_light_state == 0 and action == 1:
+                reward_moving = traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
+                reward_halting = traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
+
+                # Vertical green
+                for i in range(10):
+                    traci.trafficlight.setPhase(MAIN_SEMAPHORE, VGHR)
+
+                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
+                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+
+                    reward_moving += traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
+                    reward_halting += traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
+
+                    traci.simulationStep()
+                    stepz += 1
+            # Horizontal green -> vertical green
+            elif horizontal_light_state == 1 and action == 1:
+                # Horizontal yellow
                 for i in range(6):
-                    stepz += 1
-                    traci.trafficlight.setPhase(SEMAFORO_PRINCIPAL, HRVRLY)
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    traci.trafficlight.setPhase(MAIN_SEMAPHORE, VRHY)
                     traci.simulationStep()
+                    stepz += 1
 
-                # Action Execution
-                reward1 = traci.edge.getLastStepVehicleNumber(
-                    '1i') + traci.edge.getLastStepVehicleNumber('2i')
-                reward2 = traci.edge.getLastStepHaltingNumber(
-                    '3i') + traci.edge.getLastStepHaltingNumber('4i')
+                reward_moving = traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
+                reward_halting = traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
+
+                # Vertical green
                 for i in range(10):
-                    stepz += 1
-                    traci.trafficlight.setPhase(SEMAFORO_PRINCIPAL, HGVRLG)
-                    reward1 += traci.edge.getLastStepVehicleNumber(
-                        '1i') + traci.edge.getLastStepVehicleNumber('2i')
-                    reward2 += traci.edge.getLastStepHaltingNumber(
-                        '3i') + traci.edge.getLastStepHaltingNumber('4i')
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
-                    traci.simulationStep()
+                    traci.trafficlight.setPhase(MAIN_SEMAPHORE, VGHR)
 
-            if(action == 0 and light[0][0][0] == 1):
-                # Action Execution, no state change
-                reward1 = traci.edge.getLastStepVehicleNumber(
-                    '1i') + traci.edge.getLastStepVehicleNumber('2i')
-                reward2 = traci.edge.getLastStepHaltingNumber(
-                    '3i') + traci.edge.getLastStepHaltingNumber('4i')
-                for i in range(10):
-                    stepz += 1
-                    traci.trafficlight.setPhase('0', 4)
-                    reward1 += traci.edge.getLastStepVehicleNumber(
-                        '1i') + traci.edge.getLastStepVehicleNumber('2i')
-                    reward2 += traci.edge.getLastStepHaltingNumber(
-                        '3i') + traci.edge.getLastStepHaltingNumber('4i')
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
-                    traci.simulationStep()
+                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
+                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
 
-            if(action == 1 and light[0][0][0] == 0):
-                # Action Execution, no state change
-                reward1 = traci.edge.getLastStepVehicleNumber(
-                    '4i') + traci.edge.getLastStepVehicleNumber('3i')
-                reward2 = traci.edge.getLastStepHaltingNumber(
-                    '2i') + traci.edge.getLastStepHaltingNumber('1i')
-                for i in range(10):
-                    stepz += 1
-                    reward1 += traci.edge.getLastStepVehicleNumber(
-                        '4i') + traci.edge.getLastStepVehicleNumber('3i')
-                    reward2 += traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('1i')
-                    traci.trafficlight.setPhase('0', 0)
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
-                    traci.simulationStep()
+                    reward_moving += traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
+                    reward_halting += traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
 
-            if(action == 1 and light[0][0][0] == 1):
-                for i in range(6):
-                    stepz += 1
-                    traci.trafficlight.setPhase('0', 5)
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
                     traci.simulationStep()
-                for i in range(10):
                     stepz += 1
-                    traci.trafficlight.setPhase('0', 6)
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
-                    traci.simulationStep()
-                for i in range(6):
-                    stepz += 1
-                    traci.trafficlight.setPhase('0', 7)
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
-                    traci.simulationStep()
 
-                reward1 = traci.edge.getLastStepVehicleNumber(
-                    '4i') + traci.edge.getLastStepVehicleNumber('3i')
-                reward2 = traci.edge.getLastStepHaltingNumber(
-                    '2i') + traci.edge.getLastStepHaltingNumber('1i')
-                for i in range(10):
-                    stepz += 1
-                    traci.trafficlight.setPhase('0', 0)
-                    reward1 += traci.edge.getLastStepVehicleNumber(
-                        '4i') + traci.edge.getLastStepVehicleNumber('3i')
-                    reward2 += traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('1i')
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber(
-                        '2i') + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
-                    traci.simulationStep()
-
-            new_state = sumoInt.getState()
-            reward = reward1 - reward2
+            new_state = sumoInt.get_state()
+            reward = reward_moving - reward_halting
             agent.remember(state, action, reward, new_state, False)
-            # Randomly Draw 32 samples and train the neural network by RMS Prop algorithm
-            if(len(agent.memory) > batch_size):
+
+            if len(agent.memory) > batch_size:
                 agent.replay(batch_size)
-            
 
         mem = agent.memory[-1]
         del agent.memory[-1]
         agent.memory.append((mem[0], mem[1], reward, mem[3], True))
-        #log.write('episode - ' + str(e) + ', total waiting time - ' +
-        #          str(waiting_time) + ', static waiting time - 338798 \n')
-        #log.close()
-        print('episode - ' + str(e) + ' total waiting time - ' + str(waiting_time))
-        #agent.save('reinf_traf_control_' + str(e) + '.h5')
-        traci.close(wait=False)'''
+
+        epi_end_time = time.clock()
+        epi_time = epi_end_time - epi_start_time
+        time_mean = ((time_mean * e) + epi_time) / (e + 1)
+
+        print("Episode: %d\tTotal waiting time: %d\n\tEpisode lenght: %d seconds\tExpected sim end in: %d seconds" % (e, waiting_time, epi_time, (time_mean * ((episodes - e) - 1))))
+
+        log.write("Episode: %d\tTotal waiting time: %d\n" % (e, waiting_time))
+        log.close()
+
+        traci.close(wait=False)
+
+    sim_end_time = time.clock()
+
+    print("Total simulation time: %d" % (sim_end_time - sim_start_time))
 
 sys.stdout.flush()
