@@ -1,9 +1,9 @@
 <routes>
 	<vType id="SUMO_DEFAULT_TYPE" accel="0.8" decel="4.5" sigma="0" length="5" minGap="2" maxSpeed="70"/>
-		<route id="right" edges="51o 1i 2o 52i" />
-		<route id="left"  edges="52o 2i 1o 51i" />
-		<route id="down"  edges="54o 4i 3o 53i" />
-		<route id="up"    edges="53o 3i 4o 54i" />
+		<route id="right" edges="51o 1i 2o 52i"/>
+		<route id="left"  edges="52o 2i 1o 51i"/>
+		<route id="down"  edges="54o 4i 3o 53i"/>
+		<route id="up"    edges="53o 3i 4o 54i"/>
 
 		<vehicle id="left_0"	type="SUMO_DEFAULT_TYPE" route="left"	depart="0" />
 		<vehicle id="left_1"	type="SUMO_DEFAULT_TYPE" route="left"	depart="2" />

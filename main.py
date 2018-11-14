@@ -23,10 +23,16 @@ RIGHT_EDGE = '2i'
 BOTTOM_EDGE = '3i'
 UPPER_EDGE = '4i'
 
-VGHR = 0  # vertical green  horizontal red
-VYHR = 1  # vertical yellow horizontal red
-VRHG = 2  # vertical red    horizontal green
-VRHY = 3  # vertical red    horizontal yellow
+VGHR = 0  # vertical green      horizontal red
+VYHR = 1  # vertical yellow     horizontal red
+VRHG = 2  # vertical red        horizontal green
+VRHY = 3  # vertical red        horizontal yellow
+
+RED = 0
+GREEN = 1
+
+HORIZONTAL_GREEN = 0
+VERTICAL_GREEN = 1
 
 
 class DQNAgent:
@@ -42,7 +48,7 @@ class DQNAgent:
         # Neural Net for Deep-Q learning Model
 
         # Position P
-        input_1 = Input(shape=(12, 12, 1))
+        input_1 = Input(shape=(8, 8, 1))
         # First layer P
         x1 = Conv2D(16, (4, 4), strides=(2, 2), activation='relu')(input_1)
         # Second layer P
@@ -51,7 +57,7 @@ class DQNAgent:
         x1 = Flatten()(x1)
 
         # Speed V
-        input_2 = Input(shape=(12, 12, 1))
+        input_2 = Input(shape=(8, 8, 1))
         # First layer V
         x2 = Conv2D(16, (4, 4), strides=(2, 2), activation='relu')(input_2)
         # Second layer V
@@ -164,43 +170,45 @@ class SumoIntersection:
         return options
 
     def get_state(self):
-        position_matrix = np.zeros((12, 12))
-        velocity_matrix = np.zeros((12, 12))
+        n_lanes = 8
+        max_cell_dist = 8
+        position_matrix = np.zeros((n_lanes, max_cell_dist))
+        velocity_matrix = np.zeros((n_lanes, max_cell_dist))
 
         cell_length = 7
-        offset = 5  # Junction radius
+        offset = 11  # Junction radius
         speed_limit = 14
 
         junction_position = traci.junction.getPosition(MAIN_JUNCTION)[X]
-        vehicles_road1 = traci.edge.getLastStepVehicleIDs('1i')
-        vehicles_road2 = traci.edge.getLastStepVehicleIDs('2i')
-        vehicles_road3 = traci.edge.getLastStepVehicleIDs('3i')
-        vehicles_road4 = traci.edge.getLastStepVehicleIDs('4i')
+        vehicles_road1 = traci.edge.getLastStepVehicleIDs(LEFT_EDGE)
+        vehicles_road2 = traci.edge.getLastStepVehicleIDs(RIGHT_EDGE)
+        vehicles_road3 = traci.edge.getLastStepVehicleIDs(BOTTOM_EDGE)
+        vehicles_road4 = traci.edge.getLastStepVehicleIDs(UPPER_EDGE)
 
         for v in vehicles_road1:
             ind = int(abs(junction_position - offset - traci.vehicle.getPosition(v)[X]) / cell_length)
-            if ind < 4:
-                position_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = 1
-                velocity_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = traci.vehicle.getSpeed(v) / speed_limit
+            if ind < max_cell_dist:
+                position_matrix[traci.vehicle.getLaneIndex(v)][7 - ind] = 1
+                velocity_matrix[traci.vehicle.getLaneIndex(v)][7 - ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         for v in vehicles_road2:
             ind = int(abs((junction_position - traci.vehicle.getPosition(v)[X] + offset)) / cell_length)
-            if ind < 4:
-                position_matrix[traci.vehicle.getLaneIndex(v)][ind] = 1
-                velocity_matrix[traci.vehicle.getLaneIndex(v)][ind] = traci.vehicle.getSpeed(v) / speed_limit
+            if ind < max_cell_dist:
+                position_matrix[2 + traci.vehicle.getLaneIndex(v)][ind] = 1
+                velocity_matrix[2 + traci.vehicle.getLaneIndex(v)][ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         junction_position = traci.junction.getPosition(MAIN_SEMAPHORE)[Y]
         for v in vehicles_road3:
             ind = int(abs((junction_position - traci.vehicle.getPosition(v)[Y] - offset)) / cell_length)
-            if ind < 4:
-                position_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = 1
-                velocity_matrix[traci.vehicle.getLaneIndex(v)][3 - ind] = traci.vehicle.getSpeed(v) / speed_limit
+            if ind < max_cell_dist:
+                position_matrix[6 + traci.vehicle.getLaneIndex(v)][7 - ind] = 1
+                velocity_matrix[6 + traci.vehicle.getLaneIndex(v)][7 - ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         for v in vehicles_road4:
             ind = int(abs((junction_position - traci.vehicle.getPosition(v)[Y] + offset)) / cell_length)
-            if ind < 4:
-                position_matrix[traci.vehicle.getLaneIndex(v)][ind] = 1
-                velocity_matrix[traci.vehicle.getLaneIndex(v)][ind] = traci.vehicle.getSpeed(v) / speed_limit
+            if ind < max_cell_dist:
+                position_matrix[4 + traci.vehicle.getLaneIndex(v)][ind] = 1
+                velocity_matrix[4 + traci.vehicle.getLaneIndex(v)][ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         light = []
         if traci.trafficlight.getPhase(MAIN_SEMAPHORE) == VRHG:
@@ -209,10 +217,10 @@ class SumoIntersection:
             light = [0, 1]
 
         position = np.array(position_matrix)
-        position = position.reshape(1, 12, 12, 1)
+        position = position.reshape(1, 8, 8, 1)
 
         velocity = np.array(velocity_matrix)
-        velocity = velocity.reshape(1, 12, 12, 1)
+        velocity = velocity.reshape(1, 8, 8, 1)
 
         lgts = np.array(light)
         lgts = lgts.reshape(1, 2, 1)
@@ -233,7 +241,7 @@ if __name__ == '__main__':
         sumoBinary = checkBinary('sumo-gui')
     sumoInt.generate_routefile()
 
-    episodes = 100
+    episodes = 25
     batch_size = 32
 
     tg = 10
@@ -272,13 +280,13 @@ if __name__ == '__main__':
             horizontal_light_state = state[2][0][0][0]
 
             # Vertical green -> horizontal green
-            if horizontal_light_state == 0 and action == 0:
-                # Set vertical yellow (transition phase) for 6 timesteps
+            if horizontal_light_state == RED and action == HORIZONTAL_GREEN:
+                # Set vertical yellow (transition phase) for 6 seconds
                 for i in range(6):
                     traci.trafficlight.setPhase(MAIN_SEMAPHORE, VYHR)  # Vertical yellow, horizontal red
 
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
-                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    waiting_time += (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) + traci.edge.getLastStepHaltingNumber(RIGHT_EDGE)
+                                   + traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
 
                     traci.simulationStep()
                     stepz += 1
@@ -287,12 +295,12 @@ if __name__ == '__main__':
                 reward_moving = traci.edge.getLastStepVehicleNumber(LEFT_EDGE) + traci.edge.getLastStepVehicleNumber(RIGHT_EDGE)
                 reward_halting = traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE)
 
-                # Set horizontal green (action execution) for 10 timesteps
+                # Set horizontal green (action execution) for 10 seconds
                 for i in range(10):
                     traci.trafficlight.setPhase(MAIN_SEMAPHORE, VRHG)  # Vertical red, horizontal green
 
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
-                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    waiting_time += (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) + traci.edge.getLastStepHaltingNumber(RIGHT_EDGE)
+                                   + traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
                     # Updates reward
                     reward_moving += traci.edge.getLastStepVehicleNumber(LEFT_EDGE) + traci.edge.getLastStepVehicleNumber(RIGHT_EDGE)
                     reward_halting += traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE)
@@ -301,59 +309,63 @@ if __name__ == '__main__':
                     stepz += 1
 
             # Horizontal green -> horizontal green
-            elif horizontal_light_state == 1 and action == 0:
-                reward_moving = traci.edge.getLastStepVehicleNumber('1i') + traci.edge.getLastStepVehicleNumber('2i')
-                reward_halting = traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i')
+            elif horizontal_light_state == GREEN and action == HORIZONTAL_GREEN:
+                reward_moving = traci.edge.getLastStepVehicleNumber(LEFT_EDGE) + traci.edge.getLastStepVehicleNumber(RIGHT_EDGE)
+                reward_halting = traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE)
 
                 # Horizontal green
                 for i in range(10):
                     traci.trafficlight.setPhase(MAIN_SEMAPHORE, VRHG)
 
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
-                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    waiting_time += (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) + traci.edge.getLastStepHaltingNumber(RIGHT_EDGE)
+                                   + traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
 
-                    reward_moving += traci.edge.getLastStepVehicleNumber('1i') + traci.edge.getLastStepVehicleNumber('2i')
-                    reward_halting += traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i')
+                    reward_moving += traci.edge.getLastStepVehicleNumber(LEFT_EDGE) + traci.edge.getLastStepVehicleNumber(RIGHT_EDGE)
+                    reward_halting += traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE)
 
                     traci.simulationStep()
                     stepz += 1
             # Vertical green -> vertical green
-            elif horizontal_light_state == 0 and action == 1:
-                reward_moving = traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
-                reward_halting = traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
+            elif horizontal_light_state == RED and action == VERTICAL_GREEN:
+                reward_moving = traci.edge.getLastStepVehicleNumber(UPPER_EDGE) + traci.edge.getLastStepVehicleNumber(BOTTOM_EDGE)
+                reward_halting = traci.edge.getLastStepHaltingNumber(RIGHT_EDGE) + traci.edge.getLastStepHaltingNumber(LEFT_EDGE)
 
                 # Vertical green
                 for i in range(10):
                     traci.trafficlight.setPhase(MAIN_SEMAPHORE, VGHR)
 
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
-                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    waiting_time += (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) + traci.edge.getLastStepHaltingNumber(RIGHT_EDGE)
+                                   + traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
 
-                    reward_moving += traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
-                    reward_halting += traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
+                    reward_moving += traci.edge.getLastStepVehicleNumber(UPPER_EDGE) + traci.edge.getLastStepVehicleNumber(BOTTOM_EDGE)
+                    reward_halting += traci.edge.getLastStepHaltingNumber(RIGHT_EDGE) + traci.edge.getLastStepHaltingNumber(LEFT_EDGE)
 
                     traci.simulationStep()
                     stepz += 1
             # Horizontal green -> vertical green
-            elif horizontal_light_state == 1 and action == 1:
+            elif horizontal_light_state == GREEN and action == VERTICAL_GREEN:
                 # Horizontal yellow
                 for i in range(6):
                     traci.trafficlight.setPhase(MAIN_SEMAPHORE, VRHY)
+
+                    waiting_time += (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) + traci.edge.getLastStepHaltingNumber(RIGHT_EDGE)
+                                   + traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
+
                     traci.simulationStep()
                     stepz += 1
 
-                reward_moving = traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
-                reward_halting = traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
+                reward_moving = traci.edge.getLastStepVehicleNumber(UPPER_EDGE) + traci.edge.getLastStepVehicleNumber(BOTTOM_EDGE)
+                reward_halting = traci.edge.getLastStepHaltingNumber(RIGHT_EDGE) + traci.edge.getLastStepHaltingNumber(LEFT_EDGE)
 
                 # Vertical green
                 for i in range(10):
                     traci.trafficlight.setPhase(MAIN_SEMAPHORE, VGHR)
 
-                    waiting_time += (traci.edge.getLastStepHaltingNumber('1i') + traci.edge.getLastStepHaltingNumber('2i')
-                                   + traci.edge.getLastStepHaltingNumber('3i') + traci.edge.getLastStepHaltingNumber('4i'))
+                    waiting_time += (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) + traci.edge.getLastStepHaltingNumber(RIGHT_EDGE)
+                                   + traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) + traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
 
-                    reward_moving += traci.edge.getLastStepVehicleNumber('4i') + traci.edge.getLastStepVehicleNumber('3i')
-                    reward_halting += traci.edge.getLastStepHaltingNumber('2i') + traci.edge.getLastStepHaltingNumber('1i')
+                    reward_moving += traci.edge.getLastStepVehicleNumber(UPPER_EDGE) + traci.edge.getLastStepVehicleNumber(BOTTOM_EDGE)
+                    reward_halting += traci.edge.getLastStepHaltingNumber(RIGHT_EDGE) + traci.edge.getLastStepHaltingNumber(LEFT_EDGE)
 
                     traci.simulationStep()
                     stepz += 1
@@ -373,7 +385,7 @@ if __name__ == '__main__':
         epi_time = epi_end_time - epi_start_time
         time_mean = ((time_mean * e) + epi_time) / (e + 1)
 
-        print("Episode: %d\n\tTotal waiting time: %d seconds\n\tEpisode lenght: %d seconds\n\tExpected sim end in: %d minutes" % (e + 1, waiting_time, epi_time, (time_mean * ((episodes - e) - 1)) / 60))
+        print("Episode: %d\n\tTotal waiting time: %d seconds\n\tEpisode length: %d seconds\n\tExpected sim end in: %d minutes" % (e + 1, waiting_time, epi_time, (time_mean * ((episodes - e) - 1)) / 60))
         log.write("Episode: %d \tTotal waiting time: %d\n" % (e + 1, waiting_time))
         log.close()
 
@@ -381,6 +393,6 @@ if __name__ == '__main__':
 
     sim_end_time = time.clock()
 
-    print("Total simulation time: %d" % (sim_end_time - sim_start_time))
+    print("Total simulation time: %d minutes" % ((sim_end_time - sim_start_time) / 60))
 
 sys.stdout.flush()
