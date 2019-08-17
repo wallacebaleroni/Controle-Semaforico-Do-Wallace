@@ -1,16 +1,11 @@
-from sumolib import checkBinary
-
-import os
 import sys
 import time
 import optparse
-from collections import deque
 import random
 import numpy as np
-import keras
-from keras.layers import Input, Conv2D, Flatten, Dense
-from keras.models import Model
 import traci
+
+from src.DeepQNetworkAgent import DeepQNetworkAgent
 
 # Constraints
 X = 0
@@ -35,83 +30,6 @@ HORIZONTAL_GREEN = 0
 VERTICAL_GREEN = 1
 
 
-class DeepQNetworkAgent:
-    def __init__(self):
-        self.gamma = 0.95  # Discount rate
-        self.epsilon = 0.1  # Exploration rate
-        self.learning_rate = 0.0002
-        self.memory = deque(maxlen=200)
-        self.model = self._build_model()
-        self.action_size = 2
-
-    def _build_model(self):
-        # Neural Net for Deep-Q learning Model
-
-        # Position P
-        input_1 = Input(shape=(8, 8, 1))
-        # First layer P
-        x1 = Conv2D(16, (4, 4), strides=(2, 2), activation='relu')(input_1)
-        # Second layer P
-        x1 = Conv2D(32, (2, 2), strides=(1, 1), activation='relu')(x1)
-        # Part of the third layer
-        x1 = Flatten()(x1)
-
-        # Speed V
-        input_2 = Input(shape=(8, 8, 1))
-        # First layer V
-        x2 = Conv2D(16, (4, 4), strides=(2, 2), activation='relu')(input_2)
-        # Second layer V
-        x2 = Conv2D(32, (2, 2), strides=(1, 1), activation='relu')(x2)
-        # Part of the third layer
-        x2 = Flatten()(x2)
-
-        # Latest traffic signal state L
-        input_3 = Input(shape=(2, 1))
-        # Part of the third layer
-        x3 = Flatten()(input_3)
-
-        x = keras.layers.concatenate([x1, x2, x3])
-        # Third layer
-        x = Dense(128, activation='relu')(x)
-        # Forth layer
-        x = Dense(64, activation='relu')(x)
-        # Output layer
-        x = Dense(2, activation='linear')(x)
-
-        model = Model(inputs=[input_1, input_2, input_3], outputs=[x])
-        model.compile(optimizer=keras.optimizers.RMSprop(
-            lr=self.learning_rate), loss='mse')
-
-        return model
-
-    def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
-
-    def act(self, state):
-        if np.random.rand() <= self.epsilon:
-            return random.randrange(self.action_size)
-        act_values = self.model.predict(state)
-
-        return np.argmax(act_values[0])  # Returns action
-
-    def replay(self, batch_size):
-        minibatch = random.sample(self.memory, batch_size)
-        for state, action, reward, next_state, done in minibatch:
-            target = reward
-            if not done:
-                target = (reward + self.gamma *
-                          np.amax(self.model.predict(next_state)[0]))
-            target_f = self.model.predict(state)
-            target_f[0][action] = target
-            self.model.fit(state, target_f, epochs=1, verbose=0)
-
-    def load(self, name):
-        self.model.load_weights(name)
-
-    def save(self, name):
-        self.model.save_weights(name)
-
-
 class SumoAgent:
     def __init__(self, vehicle_generation_prababilities, episode_timesteps, seed=None):
         self.vehicle_generation_probabilities = vehicle_generation_prababilities
@@ -121,12 +39,12 @@ class SumoAgent:
 
     def generate_routefile(self):
         # Demand per second from different directions
-        p_right = self.vehicle_generation_probabilities['right']  # 1. / 15
-        p_left = self.vehicle_generation_probabilities['left']  # 1. / 15
-        p_up = self.vehicle_generation_probabilities['up']  # 1. / 15
-        p_down = self.vehicle_generation_probabilities['down']  # 1. / 15
+        p_right = self.vehicle_generation_probabilities['right']
+        p_left = self.vehicle_generation_probabilities['left']
+        p_up = self.vehicle_generation_probabilities['up']
+        p_down = self.vehicle_generation_probabilities['down']
 
-        with open("cross.rou.xml", "w") as routes:
+        with open("sim/cross/cross.rou.xml", "w") as routes:
             print('''<routes>''', file=routes)
             print('''\t<vType id="SUMO_DEFAULT_TYPE" accel="0.8" decel="4.5" sigma="0" length="5" minGap="2" maxSpeed="70"/>''', file=routes)
             print('''\t\t<route id="right" edges="51o 1i 2o 52i"/>''', file=routes)
@@ -235,8 +153,6 @@ if __name__ == '__main__':
     episode_timesteps = 3600
 
     sumoInt = SumoAgent(vehicle_generation_probabilities, episode_timesteps, 42)
-    # this script has been called from the command line. It will start sumo as a
-    # server, then connect and run
     options = sumoInt.get_options()
 
     options.nogui = True
@@ -271,7 +187,7 @@ if __name__ == '__main__':
         log = open('log.txt', 'a')
         epi_start_time = time.clock()
 
-        traci.start([sumoBinary, "-c", "cross.sumocfg", '--start', '--quit-on-end'])
+        traci.start([sumoBinary, "-c", "sim/cross/cross.sumocfg", '--start', '--quit-on-end'])
         traci.trafficlight.setPhase("0", 0)
         traci.trafficlight.setPhaseDuration("0", 200)
 
