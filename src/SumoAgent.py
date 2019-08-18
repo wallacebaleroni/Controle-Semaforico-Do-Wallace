@@ -28,7 +28,7 @@ HORIZONTAL_GREEN = 0
 VERTICAL_GREEN = 1
 
 
-class NewSumoAgent:
+class SumoAgent:
     def __init__(self, vehicle_generation_prababilities, episode_timesteps, seed=None):
         self.vehicle_generation_probabilities = vehicle_generation_prababilities
         self.episode_timesteps = episode_timesteps  # Number of time steps per episode
@@ -170,64 +170,57 @@ class NewSumoAgent:
         return self.state
 
     def act_semaphore(self, action, horizontal_light_state=None):
-        steps = 0
         if horizontal_light_state is None:
             horizontal_light_state = self.state[2][0][0][0]
 
-        waiting_time_now = 0
-        stepz_elapsed = 0
-
         if horizontal_light_state == RED and action == HORIZONTAL_GREEN:
             # Vertical green -> horizontal green
-            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VRHG, True, VYHR)
+            return self._act_semaphore(VRHG, True, VYHR)
         elif horizontal_light_state == GREEN and action == HORIZONTAL_GREEN:
             # Horizontal green -> horizontal green
-            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VRHG, True)
+            return self._act_semaphore(VRHG, True)
         elif horizontal_light_state == RED and action == VERTICAL_GREEN:
             # Vertical green -> vertical green
-            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VGHR, False)
+            return self._act_semaphore(VGHR, False)
         elif horizontal_light_state == GREEN and action == VERTICAL_GREEN:
             # Horizontal green -> vertical green
-            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VGHR, False, VRHY)
-
-        self.waiting_time += waiting_time_now
-        steps += stepz_elapsed
-
-        return waiting_time_now, reward_moving, reward_halting, stepz_elapsed
+            return self._act_semaphore(VGHR, False, VRHY)
 
     def _act_semaphore(self, phase, moving_horizontal, yellow_phase=None):
-        waiting_time = 0
-        stepz = 0
+        steps_elapsed = 0
 
         if yellow_phase is not None:
             # Sets vertical yellow (transition phase) for 6 seconds
             for i in range(self.yellow_light_time):
                 traci.trafficlight.setPhase(MAIN_SEMAPHORE, yellow_phase)
 
-                waiting_time += get_waiting_time()
+                self.waiting_time += get_waiting_time()
 
                 traci.simulationStep()
-                stepz += 1
+                steps_elapsed += 1
 
         # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
-        reward_moving = get_num_of_moving_vehicles(moving_horizontal)
-        reward_halting = get_num_of_halting_vehicles(not moving_horizontal)
+        self.reward_moving = get_num_of_moving_vehicles(moving_horizontal)
+        self.reward_halting = get_num_of_halting_vehicles(not moving_horizontal)
 
         for i in range(self.green_light_time):
             traci.trafficlight.setPhase(MAIN_SEMAPHORE, phase)
 
-            waiting_time += get_waiting_time()
+            self.waiting_time += get_waiting_time()
             # Updates reward
-            reward_moving += get_num_of_moving_vehicles(moving_horizontal)
-            reward_halting += get_num_of_halting_vehicles(not moving_horizontal)
+            self.reward_moving += get_num_of_moving_vehicles(moving_horizontal)
+            self.reward_halting += get_num_of_halting_vehicles(not moving_horizontal)
 
             traci.simulationStep()
-            stepz += 1
+            steps_elapsed += 1
 
-        return waiting_time, reward_moving, reward_halting, stepz
+        return steps_elapsed
 
     def calculate_reward(self):
         return self.reward_moving - self.reward_halting
+
+    def num_of_vehicles_still_in_simulation(self):
+        return traci.simulation.getMinExpectedNumber()
 
     def end_sim(self):
         traci.close(wait=False)
