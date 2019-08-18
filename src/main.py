@@ -138,65 +138,13 @@ class SumoAgent:
 
         return [position, velocity, lgts]
 
-    def act_semaphore(self):
-        pass
 
+def print_progress_bar(current, total, total_bars):
+    percentage = int((current * 100) / total)
+    bars = int((current / total) * total_bars)
+    hifens = total_bars - bars - 1
 
-def get_waiting_time():
-    return (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) +
-            traci.edge.getLastStepHaltingNumber(RIGHT_EDGE) +
-            traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) +
-            traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
-
-
-def get_num_of_moving_vehicles(horizontal=True):
-    if horizontal:
-        return (traci.edge.getLastStepVehicleNumber(LEFT_EDGE) +
-                traci.edge.getLastStepVehicleNumber(RIGHT_EDGE))
-    else:
-        return (traci.edge.getLastStepVehicleNumber(UPPER_EDGE) +
-                traci.edge.getLastStepVehicleNumber(BOTTOM_EDGE))
-
-
-def get_num_of_halting_vehicles(horizontal=True):
-    if horizontal:
-        return (traci.edge.getLastStepHaltingNumber(LEFT_EDGE) +
-                traci.edge.getLastStepHaltingNumber(RIGHT_EDGE))
-    else:
-        return (traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) +
-                traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
-
-
-def act_semaphore(phase, moving_horizontal, yellow_phase=None):
-    waiting_time = 0
-    stepz = 0
-
-    if yellow_phase is not None:
-        # Sets vertical yellow (transition phase) for 6 seconds
-        for i in range(yellow_light_time):
-            traci.trafficlight.setPhase(MAIN_SEMAPHORE, yellow_phase)
-
-            waiting_time += get_waiting_time()
-
-            traci.simulationStep()
-            stepz += 1
-
-    # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
-    reward_moving = get_num_of_moving_vehicles(moving_horizontal)
-    reward_halting = get_num_of_halting_vehicles(not moving_horizontal)
-
-    for i in range(green_light_time):
-        traci.trafficlight.setPhase(MAIN_SEMAPHORE, phase)
-
-        waiting_time += get_waiting_time()
-        # Updates reward
-        reward_moving += get_num_of_moving_vehicles(moving_horizontal)
-        reward_halting += get_num_of_halting_vehicles(not moving_horizontal)
-
-        traci.simulationStep()
-        stepz += 1
-
-    return waiting_time, reward_moving, reward_halting, stepz
+    sys.stdout.write("\r" + "|" + ("|" * bars) + ("-" * hifens) + "| " + str(percentage) + "%")
 
 
 if __name__ == '__main__':
@@ -255,9 +203,6 @@ if __name__ == '__main__':
             action = agent.act(state)
             horizontal_light_state = state[2][0][0][0]
 
-            waiting_time_now = 0
-            stepz_elapsed = 0
-
             waiting_time_now, reward_moving, reward_halting, stepz_elapsed = new_sumoInt.act_semaphore(action, horizontal_light_state)
 
             waiting_time += waiting_time_now
@@ -270,6 +215,9 @@ if __name__ == '__main__':
             if len(agent.memory) > batch_size:
                 agent.replay(batch_size)
 
+            print_progress_bar(stepz, episode_timesteps, 20)
+        print_progress_bar(episode_timesteps, episode_timesteps, 20)
+
         mem = agent.memory[-1]
         del agent.memory[-1]
         agent.memory.append((mem[0], mem[1], reward, mem[3], True))
@@ -278,7 +226,7 @@ if __name__ == '__main__':
         epi_time = epi_end_time - epi_start_time
         time_mean = ((time_mean * e) + epi_time) / (e + 1)
 
-        print("Episode: %d\n"
+        print("\nEpisode: %d\n"
               "\tTotal waiting time: %d seconds\n"
               "\tEpisode length: %d seconds\n"
               "\tExpected sim end in: %d minutes" %
@@ -292,5 +240,3 @@ if __name__ == '__main__':
     sim_end_time = time.clock()
 
     print("Total simulation time: %d minutes" % ((sim_end_time - sim_start_time) / 60))
-
-sys.stdout.flush()
