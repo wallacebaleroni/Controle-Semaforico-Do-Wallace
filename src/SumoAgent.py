@@ -5,9 +5,6 @@ import random
 import numpy as np
 import traci
 
-from src.DeepQNetworkAgent import DeepQNetworkAgent
-from src.SumoAgent import NewSumoAgent
-
 # Constraints
 X = 0
 Y = 1
@@ -31,12 +28,36 @@ HORIZONTAL_GREEN = 0
 VERTICAL_GREEN = 1
 
 
-class SumoAgent:
+class NewSumoAgent:
     def __init__(self, vehicle_generation_prababilities, episode_timesteps, seed=None):
         self.vehicle_generation_probabilities = vehicle_generation_prababilities
         self.episode_timesteps = episode_timesteps  # Number of time steps per episode
         if seed is not None:
             random.seed(seed)  # Make tests reproducible
+
+        # We need to import python modules from the $SUMO_HOME/tools directory
+        try:
+            from sumolib import checkBinary
+        except ImportError:
+            sys.exit("Please declare environment variable 'SUMO_HOME' as the root directory of your sumo " +
+                     "installation (it should contain folders 'bin', 'tools' and 'docs')")
+
+        self.options = self.get_options()
+        if self.options.nogui:
+            self.sumoBinary = checkBinary('sumo')
+        else:
+            self.sumoBinary = checkBinary('sumo-gui')
+        self.generate_routefile()
+
+        self.yellow_light_time = 6
+        self.green_light_time = 10
+
+        self.horizontal_light_state = None
+        self.state = None
+
+        self.waiting_time = 0
+        self.reward_moving = 0
+        self.reward_halting = 0
 
     def generate_routefile(self):
         # Demand per second from different directions
@@ -79,6 +100,15 @@ class SumoAgent:
         opt_parser.add_option("--nogui", action="store_true", default=False, help="run the commandline version of sumo")
         options, args = opt_parser.parse_args()
         return options
+
+    def start_sim(self):
+        self.waiting_time = 0
+        self.reward_moving = 0
+        self.reward_halting = 0
+
+        traci.start([self.sumoBinary, "-c", "sim/cross/cross.sumocfg", '--start', '--quit-on-end'])
+        traci.trafficlight.setPhase("0", 0)
+        traci.trafficlight.setPhaseDuration("0", 200)
 
     def get_state(self):
         n_lanes = 8
@@ -136,10 +166,73 @@ class SumoAgent:
         lgts = np.array(light)
         lgts = lgts.reshape(1, 2, 1)
 
-        return [position, velocity, lgts]
+        self.state = [position, velocity, lgts]
+        return self.state
 
-    def act_semaphore(self):
-        pass
+    def act_semaphore(self, action, horizontal_light_state=None):
+        steps = 0
+        if horizontal_light_state is None:
+            horizontal_light_state = self.state[2][0][0][0]
+
+        waiting_time_now = 0
+        stepz_elapsed = 0
+
+        if horizontal_light_state == RED and action == HORIZONTAL_GREEN:
+            # Vertical green -> horizontal green
+            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VRHG, True, VYHR)
+        elif horizontal_light_state == GREEN and action == HORIZONTAL_GREEN:
+            # Horizontal green -> horizontal green
+            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VRHG, True)
+        elif horizontal_light_state == RED and action == VERTICAL_GREEN:
+            # Vertical green -> vertical green
+            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VGHR, False)
+        elif horizontal_light_state == GREEN and action == VERTICAL_GREEN:
+            # Horizontal green -> vertical green
+            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = self._act_semaphore(VGHR, False, VRHY)
+
+        self.waiting_time += waiting_time_now
+        steps += stepz_elapsed
+
+        return waiting_time_now, reward_moving, reward_halting, stepz_elapsed
+
+    def _act_semaphore(self, phase, moving_horizontal, yellow_phase=None):
+        waiting_time = 0
+        stepz = 0
+
+        if yellow_phase is not None:
+            # Sets vertical yellow (transition phase) for 6 seconds
+            for i in range(self.yellow_light_time):
+                traci.trafficlight.setPhase(MAIN_SEMAPHORE, yellow_phase)
+
+                waiting_time += get_waiting_time()
+
+                traci.simulationStep()
+                stepz += 1
+
+        # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
+        reward_moving = get_num_of_moving_vehicles(moving_horizontal)
+        reward_halting = get_num_of_halting_vehicles(not moving_horizontal)
+
+        for i in range(self.green_light_time):
+            traci.trafficlight.setPhase(MAIN_SEMAPHORE, phase)
+
+            waiting_time += get_waiting_time()
+            # Updates reward
+            reward_moving += get_num_of_moving_vehicles(moving_horizontal)
+            reward_halting += get_num_of_halting_vehicles(not moving_horizontal)
+
+            traci.simulationStep()
+            stepz += 1
+
+        return waiting_time, reward_moving, reward_halting, stepz
+
+    def calculate_reward(self):
+        return self.reward_moving - self.reward_halting
+
+    def end_sim(self):
+        traci.close(wait=False)
+
+        return self.waiting_time
 
 
 def get_waiting_time():
@@ -165,132 +258,3 @@ def get_num_of_halting_vehicles(horizontal=True):
     else:
         return (traci.edge.getLastStepHaltingNumber(BOTTOM_EDGE) +
                 traci.edge.getLastStepHaltingNumber(UPPER_EDGE))
-
-
-def act_semaphore(phase, moving_horizontal, yellow_phase=None):
-    waiting_time = 0
-    stepz = 0
-
-    if yellow_phase is not None:
-        # Sets vertical yellow (transition phase) for 6 seconds
-        for i in range(yellow_light_time):
-            traci.trafficlight.setPhase(MAIN_SEMAPHORE, yellow_phase)
-
-            waiting_time += get_waiting_time()
-
-            traci.simulationStep()
-            stepz += 1
-
-    # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
-    reward_moving = get_num_of_moving_vehicles(moving_horizontal)
-    reward_halting = get_num_of_halting_vehicles(not moving_horizontal)
-
-    for i in range(green_light_time):
-        traci.trafficlight.setPhase(MAIN_SEMAPHORE, phase)
-
-        waiting_time += get_waiting_time()
-        # Updates reward
-        reward_moving += get_num_of_moving_vehicles(moving_horizontal)
-        reward_halting += get_num_of_halting_vehicles(not moving_horizontal)
-
-        traci.simulationStep()
-        stepz += 1
-
-    return waiting_time, reward_moving, reward_halting, stepz
-
-
-if __name__ == '__main__':
-    # We need to import python modules from the $SUMO_HOME/tools directory
-    try:
-        from sumolib import checkBinary
-    except ImportError:
-        sys.exit("Please declare environment variable 'SUMO_HOME' as the root directory of your sumo " +
-                 "installation (it should contain folders 'bin', 'tools' and 'docs')")
-
-    vehicle_generation_probabilities = {'right': 1. / 15, 'left': 1. / 15, 'up': 1. / 15, 'down': 1. / 15}
-    episode_timesteps = 3600
-
-    sumoInt = SumoAgent(vehicle_generation_probabilities, episode_timesteps, 42)
-    new_sumoInt = NewSumoAgent(vehicle_generation_probabilities, episode_timesteps, 42)
-    options = sumoInt.get_options()
-
-    options.nogui = True
-
-    if options.nogui:
-        sumoBinary = checkBinary('sumo')
-    else:
-        sumoBinary = checkBinary('sumo-gui')
-    sumoInt.generate_routefile()
-
-    episodes = 25
-    batch_size = 32
-
-    green_light_time = 10
-    yellow_light_time = 6
-    agent = DeepQNetworkAgent()
-
-    time_mean = 0
-    sim_start_time = time.clock()
-
-    for e in range(episodes):
-        log = open('log.txt', 'a')
-        epi_start_time = time.clock()
-
-        # DNN Agent
-        # Initialize DNN with random weights
-        # Initialize target network with same weights as DNN Network
-        step = 0
-        stepz = 0
-        action = 0
-
-        waiting_time = 0
-        reward_moving = 0
-        reward_halting = 0
-
-        new_sumoInt.start_sim()
-
-        while traci.simulation.getMinExpectedNumber() > 0 and stepz < episode_timesteps:
-            traci.simulationStep()
-            state = sumoInt.get_state()
-            action = agent.act(state)
-            horizontal_light_state = state[2][0][0][0]
-
-            waiting_time_now = 0
-            stepz_elapsed = 0
-
-            waiting_time_now, reward_moving, reward_halting, stepz_elapsed = new_sumoInt.act_semaphore(action, horizontal_light_state)
-
-            waiting_time += waiting_time_now
-            stepz += stepz_elapsed
-
-            new_state = sumoInt.get_state()
-            reward = reward_moving - reward_halting
-            agent.remember(state, action, reward, new_state, False)
-
-            if len(agent.memory) > batch_size:
-                agent.replay(batch_size)
-
-        mem = agent.memory[-1]
-        del agent.memory[-1]
-        agent.memory.append((mem[0], mem[1], reward, mem[3], True))
-
-        epi_end_time = time.clock()
-        epi_time = epi_end_time - epi_start_time
-        time_mean = ((time_mean * e) + epi_time) / (e + 1)
-
-        print("Episode: %d\n"
-              "\tTotal waiting time: %d seconds\n"
-              "\tEpisode length: %d seconds\n"
-              "\tExpected sim end in: %d minutes" %
-              (e + 1, waiting_time, epi_time, (time_mean * ((episodes - e) - 1)) / 60))
-
-        log.write("Episode: %d \tTotal waiting time: %d\n" % (e + 1, waiting_time))
-        log.close()
-
-        traci.close(wait=False)
-
-    sim_end_time = time.clock()
-
-    print("Total simulation time: %d minutes" % ((sim_end_time - sim_start_time) / 60))
-
-sys.stdout.flush()
