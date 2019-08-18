@@ -57,7 +57,7 @@ if __name__ == '__main__':
     # DNN Agent
     # Initialize DNN with random weights
     # Initialize target network with same weights as DNN Network
-    netword_agent = DeepQNetworkAgent()
+    network_agent = DeepQNetworkAgent()
     sumo_agent = SumoAgent(vehicle_generation_probabilities, episode_timesteps, vehicle_generation_seed)
 
     time_mean = 0
@@ -75,7 +75,7 @@ if __name__ == '__main__':
             # Gets current simulation state
             state = sumo_agent.get_state()
             # Gets an action accordingly to current state
-            action = netword_agent.act(state)
+            action = network_agent.act(state)
             # Executes action on simulation
             steps += sumo_agent.act_semaphore(action)
             # Gets next state
@@ -83,17 +83,17 @@ if __name__ == '__main__':
             # Gets reward from last action
             reward = sumo_agent.calculate_reward()
             # Stores states for network tunning
-            netword_agent.remember(state, action, reward, next_state, False)
+            network_agent.remember(state, action, reward, next_state, False)
 
-            if len(netword_agent.memory) > batch_size:
-                netword_agent.replay(batch_size)
+            if len(network_agent.memory) > batch_size:
+                network_agent.replay(batch_size)
 
             print_progress_bar(steps, episode_timesteps, 20)
-        print_progress_bar(episode_timesteps, episode_timesteps, 20)
+        print_progress_bar(episode_timesteps, episode_timesteps, 19)
 
-        mem = netword_agent.memory[-1]
-        del netword_agent.memory[-1]
-        netword_agent.memory.append((mem[0], mem[1], reward, mem[3], True))
+        mem = network_agent.memory[-1]
+        del network_agent.memory[-1]
+        network_agent.memory.append((mem[0], mem[1], reward, mem[3], True))
 
         epi_end_time = time.clock()
         epi_time = epi_end_time - epi_start_time
