@@ -1,6 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<net version="1.1" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+<!-- generated on 09/01/19 14:56:46 by Eclipse SUMO netedit Version 1.0.1
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="C:\Users\Wallace\inga.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="C:\Users\Wallace\inga.net.xml"/>
+        <output.street-names value="true"/>
+    </output>
+
+    <processing>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+    </processing>
+
+    <junctions>
+        <no-internal-links value="false"/>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.5"/>
+        <rectangular-lane-cut value="false"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="false"/>
+    </pedestrian>
+
+</configuration>
+-->
+
+<net version="1.0" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="-691209.67,2535218.02" convBoundary="875.51,1043.07,1824.87,1677.89" origBoundary="-43.171474,-22.913761,-43.109244,-22.890045" projParameter="+proj=utm +zone=23 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
 
@@ -61,7 +93,7 @@
         <lane id=":Paulo_Alves__Fagundes_Varela_8_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="9.08" length="18.68" shape="1425.22,1359.94 1424.91,1365.06 1423.03,1368.83 1419.58,1371.26 1414.57,1372.35"/>
     </edge>
     <edge id=":Paulo_Alves__Fagundes_Varela_9" function="internal">
-        <lane id=":Paulo_Alves__Fagundes_Varela_9_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="11.68" length="4.04" shape="1439.47,1374.09 1443.06,1375.96"/>
+        <lane id=":Paulo_Alves__Fagundes_Varela_9_0" index="0" speed="11.68" length="4.04" shape="1439.47,1374.09 1443.06,1375.96"/>
     </edge>
     <edge id=":Paulo_Alves__Fagundes_Varela_c0" function="crossing" crossingEdges="Fagundes_Varela#1 Fagundes_Varela#-1">
         <lane id=":Paulo_Alves__Fagundes_Varela_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.40" width="4.00" shape="1441.70,1373.79 1439.58,1379.82"/>
@@ -189,30 +221,30 @@
         <lane id=":Tiradentes__Pereira_Nunes_w1_0" index="0" allow="pedestrian" speed="1.00" length="11.20" width="4.00" shape="1313.26,1378.06 1309.27,1378.36 1324.43,1377.25 1320.44,1377.54"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_0" function="internal">
-        <lane id=":Tiradentes__Visconde_de_Morais_0_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="30.03" shape="1084.37,1378.11 1077.84,1374.38 1071.46,1370.37 1064.98,1366.61 1058.14,1363.63"/>
-        <lane id=":Tiradentes__Visconde_de_Morais_0_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="30.03" shape="1085.82,1375.26 1079.07,1371.98 1072.19,1368.95 1065.20,1366.17 1058.14,1363.63"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_0_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="30.28" shape="1084.59,1378.22 1078.03,1374.48 1071.58,1370.43 1065.01,1366.63 1058.14,1363.63"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_0_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="30.28" shape="1086.05,1375.37 1079.26,1372.07 1072.30,1369.01 1065.24,1366.19 1058.14,1363.63"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_2" function="internal">
-        <lane id=":Tiradentes__Visconde_de_Morais_2_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="14.91" length="26.27" shape="1085.82,1375.26 1080.34,1371.64 1076.06,1367.00 1072.98,1361.34 1071.11,1354.66"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_2_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="14.97" length="26.50" shape="1086.05,1375.37 1080.46,1371.71 1076.11,1367.03 1073.00,1361.35 1071.11,1354.66"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_3" function="internal">
-        <lane id=":Tiradentes__Visconde_de_Morais_3_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="11.32" length="25.30" shape="1068.54,1384.19 1068.78,1376.83 1067.12,1370.94 1063.58,1366.55 1058.14,1363.63"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_3_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="11.69" length="25.84" shape="1069.25,1384.62 1069.14,1377.05 1067.25,1371.03 1063.58,1366.56 1058.14,1363.63"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_4" function="internal">
-        <lane id=":Tiradentes__Visconde_de_Morais_4_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="29.62" shape="1068.54,1384.19 1069.30,1376.88 1069.44,1369.69 1068.99,1362.50 1067.96,1355.21"/>
-        <lane id=":Tiradentes__Visconde_de_Morais_4_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="29.62" shape="1071.71,1384.66 1072.47,1377.18 1072.60,1369.64 1072.14,1362.11 1071.11,1354.66"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_4_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="29.94" shape="1069.25,1384.62 1069.68,1377.21 1069.60,1369.87 1069.03,1362.56 1067.96,1355.21"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_4_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="29.94" shape="1072.44,1384.91 1072.87,1377.37 1072.77,1369.74 1072.18,1362.14 1071.11,1354.66"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_c0" function="crossing" crossingEdges="Tiradentes#3">
-        <lane id=":Tiradentes__Visconde_de_Morais_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.40" width="4.00" shape="1084.77,1372.92 1081.86,1378.63"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.40" width="4.00" shape="1084.99,1373.04 1082.08,1378.74"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_c1" function="crossing" crossingEdges="Visconde_de_Morais#1">
-        <lane id=":Tiradentes__Visconde_de_Morais_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.40" width="4.00" shape="1073.58,1382.91 1067.25,1381.98"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.40" width="4.00" shape="1074.22,1383.07 1067.84,1382.48"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_w0" function="walkingarea">
-        <lane id=":Tiradentes__Visconde_de_Morais_w0_0" index="0" allow="pedestrian" speed="1.00" length="9.32" width="4.00" shape="1080.08,1377.72 1083.64,1379.53 1073.29,1384.89 1073.87,1380.93"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_w0_0" index="0" allow="pedestrian" speed="1.00" length="8.98" width="4.00" shape="1080.30,1377.83 1083.87,1379.65 1074.03,1385.06 1074.40,1381.08"/>
     </edge>
     <edge id=":Tiradentes__Visconde_de_Morais_w1" function="walkingarea">
-        <lane id=":Tiradentes__Visconde_de_Morais_w1_0" index="0" allow="pedestrian" speed="1.00" length="19.72" width="4.00" shape="1067.54,1380.01 1066.96,1383.96 1086.55,1373.83 1082.99,1372.02"/>
+        <lane id=":Tiradentes__Visconde_de_Morais_w1_0" index="0" allow="pedestrian" speed="1.00" length="19.57" width="4.00" shape="1068.03,1380.48 1067.66,1384.47 1086.77,1373.95 1083.21,1372.13"/>
     </edge>
     <edge id=":Visconde_de_Morais__Presidente_Pedreira_0" function="internal">
         <lane id=":Visconde_de_Morais__Presidente_Pedreira_0_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="15.57" shape="1030.67,1166.37 1046.03,1163.80"/>
@@ -399,10 +431,10 @@
         </lane>
     </edge>
     <edge id="Tiradentes#3" from="Tiradentes__Nilo_Pecanha" to="Tiradentes__Visconde_de_Morais" name="Rua Tiradentes" priority="10" type="highway.tertiary" spreadType="center" shape="1223.24,1387.97 1132.50,1393.55 1113.20,1391.02 1072.21,1370.11">
-        <lane id="Tiradentes#3_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="134.06" shape="1215.48,1390.05 1132.44,1395.16 1112.72,1392.57 1084.37,1378.11">
+        <lane id="Tiradentes#3_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="133.81" shape="1215.48,1390.05 1132.44,1395.16 1112.72,1392.57 1084.59,1378.22">
             <param key="origId" value="79785364"/>
         </lane>
-        <lane id="Tiradentes#3_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="134.06" shape="1215.29,1386.86 1132.56,1391.94 1113.68,1389.47 1085.82,1375.26">
+        <lane id="Tiradentes#3_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="133.81" shape="1215.29,1386.86 1132.56,1391.94 1113.68,1389.47 1086.05,1375.37">
             <param key="origId" value="79785364"/>
         </lane>
     </edge>
@@ -414,11 +446,11 @@
             <param key="origId" value="79785364"/>
         </lane>
     </edge>
-    <edge id="Visconde_de_Morais#1" from="1353098328" to="Tiradentes__Visconde_de_Morais" name="Rua Visconde de Morais" priority="10" type="highway.tertiary" spreadType="center">
-        <lane id="Visconde_de_Morais#1_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="81.24" shape="1056.85,1464.59 1068.54,1384.19">
+    <edge id="Visconde_de_Morais#1" from="1353098328" to="Tiradentes__Visconde_de_Morais" name="Rua Visconde de Morais" priority="10" type="highway.tertiary" spreadType="center" shape="989.26,1658.91 1064.71,1450.54 1072.21,1370.11">
+        <lane id="Visconde_de_Morais#1_0" index="0" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="287.67" shape="987.76,1658.37 1063.14,1450.19 1069.25,1384.62">
             <param key="origId" value="120745919"/>
         </lane>
-        <lane id="Visconde_de_Morais#1_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="81.24" shape="1060.01,1465.05 1071.71,1384.66">
+        <lane id="Visconde_de_Morais#1_1" index="1" disallow="tram rail_urban rail rail_electric pedestrian ship" speed="16.67" length="287.67" shape="990.76,1659.45 1066.28,1450.89 1072.44,1384.91">
             <param key="origId" value="120745919"/>
         </lane>
     </edge>
@@ -474,14 +506,14 @@
         <phase duration="40" state="GGGrrrrG"/>
         <phase duration="5"  state="yyyrrrrr"/>
     </tlLogic>
-	<tlLogic id="Visconde_de_Morais__Presidente_Pedreira" type="static" programID="0" offset="0">
-		<phase duration="30" state="GGGGrr" type="target,transient" targetLanes="Presidente_Pedreira#2_0" minDur="5" maxDur="30"/>
-		<phase duration="5"  state="yyyyrr" type="transient" minDur="5" maxDur="5"/>
-		<phase duration="30"  state="rrrrGG" type="target,transient" targetLanes="Visconde_de_Morais#2_0 Visconde_de_Morais#2_1" minDur="5" maxDur="30"/>
-		<phase duration="5"  state="rrrrrr" type="transient" minDur="5" maxDur="5"/>
-	</tlLogic>
+    <tlLogic id="Visconde_de_Morais__Presidente_Pedreira" type="static" programID="0" offset="0">
+        <phase duration="30" state="GGGGrr"/>
+        <phase duration="5"  state="yyyyrr"/>
+        <phase duration="30" state="rrrrGG"/>
+        <phase duration="5"  state="rrrrrr"/>
+    </tlLogic>
 
-    <junction id="1353098328" type="dead_end" x="1058.43" y="1464.82" incLanes="" intLanes="" shape="1061.60,1465.28 1055.26,1464.36"/>
+    <junction id="1353098328" type="dead_end" x="989.26" y="1658.91" incLanes="" intLanes="" shape="992.27,1660.00 986.25,1657.82"/>
     <junction id="1373095632" type="dead_end" x="959.60" y="1180.22" incLanes="" intLanes="" shape="960.15,1183.37 959.05,1177.07"/>
     <junction id="321742102" type="dead_end" x="875.51" y="1355.13" incLanes="Tiradentes#4_0 Tiradentes#4_1" intLanes="" shape="875.92,1358.30 875.10,1351.96"/>
     <junction id="321989117" type="dead_end" x="1824.87" y="1488.91" incLanes="Fagundes_Varela#1_0" intLanes="" shape="1824.87,1488.91 1824.90,1485.71 1824.87,1488.91"/>
@@ -496,7 +528,7 @@
         <request index="6"  response="10000000000" foes="10000001111" cont="0"/>
         <request index="7"  response="10000000000" foes="10000001100" cont="0"/>
         <request index="8"  response="10000000000" foes="10000001100" cont="0"/>
-        <request index="9"  response="00000000000" foes="00000011111" cont="0"/>
+        <request index="9" response="00000000000" foes="00000011111" cont="0"/>
         <request index="10" response="00000000000" foes="00111110000" cont="0"/>
     </junction>
     <junction id="Presidente_Pedreira__Nilo_Pecanha" type="traffic_light" x="1187.64" y="1141.75" incLanes="Presidente_Pedreira#3_0 Presidente_Pedreira#3_1 :Presidente_Pedreira__Nilo_Pecanha_w1_0 :Presidente_Pedreira__Nilo_Pecanha_w0_0" intLanes=":Presidente_Pedreira__Nilo_Pecanha_0_0 :Presidente_Pedreira__Nilo_Pecanha_0_1 :Presidente_Pedreira__Nilo_Pecanha_2_0 :Presidente_Pedreira__Nilo_Pecanha_c0_0 :Presidente_Pedreira__Nilo_Pecanha_c1_0" shape="1187.38,1151.12 1190.55,1150.66 1190.73,1147.26 1191.38,1145.98 1192.42,1144.99 1193.83,1144.29 1195.63,1143.87 1194.74,1137.53 1179.55,1139.86 1180.60,1146.17 1183.98,1146.28 1185.25,1146.91 1186.24,1147.93 1186.95,1149.33" radius="6.00">
@@ -538,7 +570,7 @@
         <request index="3" response="00000" foes="00111" cont="0"/>
         <request index="4" response="00000" foes="00011" cont="0"/>
     </junction>
-    <junction id="Tiradentes__Visconde_de_Morais" type="traffic_light" x="1072.21" y="1370.11" incLanes="Tiradentes#3_0 Tiradentes#3_1 Visconde_de_Morais#1_0 Visconde_de_Morais#1_1 :Tiradentes__Visconde_de_Morais_w1_0 :Tiradentes__Visconde_de_Morais_w0_0" intLanes=":Tiradentes__Visconde_de_Morais_0_0 :Tiradentes__Visconde_de_Morais_0_1 :Tiradentes__Visconde_de_Morais_2_0 :Tiradentes__Visconde_de_Morais_3_0 :Tiradentes__Visconde_de_Morais_4_0 :Tiradentes__Visconde_de_Morais_4_1 :Tiradentes__Visconde_de_Morais_c0_0 :Tiradentes__Visconde_de_Morais_c1_0" shape="1083.64,1379.53 1086.55,1373.83 1082.98,1371.67 1079.91,1369.07 1077.35,1366.05 1075.29,1362.59 1073.74,1358.70 1072.69,1354.38 1066.39,1355.49 1066.65,1358.41 1066.30,1360.60 1065.32,1362.07 1063.72,1362.81 1061.50,1362.83 1058.65,1362.12 1056.59,1368.18 1060.23,1369.76 1063.11,1371.76 1065.22,1374.18 1066.56,1377.02 1067.14,1380.28 1066.96,1383.96 1073.29,1384.89 1073.98,1381.99 1075.08,1379.89 1076.60,1378.60 1078.53,1378.11 1080.88,1378.42" radius="10.00">
+    <junction id="Tiradentes__Visconde_de_Morais" type="traffic_light" x="1072.21" y="1370.11" incLanes="Tiradentes#3_0 Tiradentes#3_1 Visconde_de_Morais#1_0 Visconde_de_Morais#1_1 :Tiradentes__Visconde_de_Morais_w1_0 :Tiradentes__Visconde_de_Morais_w0_0" intLanes=":Tiradentes__Visconde_de_Morais_0_0 :Tiradentes__Visconde_de_Morais_0_1 :Tiradentes__Visconde_de_Morais_2_0 :Tiradentes__Visconde_de_Morais_3_0 :Tiradentes__Visconde_de_Morais_4_0 :Tiradentes__Visconde_de_Morais_4_1 :Tiradentes__Visconde_de_Morais_c0_0 :Tiradentes__Visconde_de_Morais_c1_0" shape="1083.87,1379.65 1086.77,1373.95 1083.14,1371.75 1080.01,1369.12 1077.41,1366.07 1075.32,1362.60 1073.75,1358.70 1072.69,1354.38 1066.39,1355.49 1066.65,1358.41 1066.30,1360.60 1065.32,1362.07 1063.72,1362.81 1061.50,1362.83 1058.65,1362.12 1056.59,1368.18 1060.29,1369.78 1063.24,1371.83 1065.46,1374.32 1066.93,1377.26 1067.66,1380.64 1067.66,1384.47 1074.03,1385.06 1074.56,1382.14 1075.54,1380.03 1076.95,1378.73 1078.81,1378.23 1081.12,1378.54" radius="10.00">
         <request index="0" response="01111010" foes="01111010" cont="0"/>
         <request index="1" response="01111000" foes="01111001" cont="0"/>
         <request index="2" response="01110000" foes="01110000" cont="0"/>
