@@ -44,6 +44,7 @@ class SumoAgent:
             self.sumoBinary = checkBinary('sumo')
         else:
             self.sumoBinary = checkBinary('sumo-gui')
+        self.generate_routefile()
 
         self.yellow_light_time = 6
         self.green_light_time = 10
@@ -55,7 +56,38 @@ class SumoAgent:
         self.reward_moving = 0
         self.reward_halting = 0
 
-    def get_options(self):
+    @staticmethod
+    def generate_routefile():
+        number_of_vehicles = {'UFF__UFF__retorno': 150,
+                              'UFF__icarai_meio': 400,
+                              'UFF__praia_icarai': 100,
+                              'centro__praia_icarai': 1800,
+                              'icarai_meio__centro': 500,
+                              'icarai_meio__icarai_praia': 200,
+                              'praia_icarai__UFF': 1000,
+                              'praia_icarai__centro': 1800}
+        multiplier = 0.6
+
+        with open("sim/inga/inga.rou.xml", "w") as routes:
+            print('''<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">''', file=routes)
+            print('''\t<route id="UFF__UFF__retorno" edges="Presidente_Pedreira#1 Presidente_Pedreira#2 Presidente_Pedreira#3 Nilo_Pecanha#1 Tiradentes#3 Tiradentes#4" color="127,255,212"/>''', file=routes)
+            print('''\t<route id="UFF__icarai_meio" edges="Presidente_Pedreira#1 Presidente_Pedreira#2 Presidente_Pedreira#3 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Fagundes_Varela#1" color="cyan"/>''', file=routes)
+            print('''\t<route id="UFF__praia_icarai" edges="Presidente_Pedreira#1 Presidente_Pedreira#2 Presidente_Pedreira#3 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6R Paulo_Alves#-1" color="blue"/>''', file=routes)
+            print('''\t<route id="centro__praia_icarai" edges="Visconde_de_Morais#1 Visconde_de_Morais#2 Presidente_Pedreira#3 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6R Paulo_Alves#-1" color="red"/>''', file=routes)
+            print('''\t<route id="icarai_meio__centro" edges="Fagundes_Varela#-1 Sao_Sebastiao#1" color="magenta"/>''', file=routes)
+            print('''\t<route id="icarai_meio__icarai_praia" edges="Fagundes_Varela#-1 Tiradentes#1 Pereira_Nunes#1 Presidente_Pedreira#5 Presidente_Pedreira#6R Paulo_Alves#-1" color="250,235,215"/>''', file=routes)
+            print('''\t<route id="praia_icarai__UFF" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Tiradentes#1 Tiradentes#2 Tiradentes#3 Tiradentes#4" color="yellow"/>''', file=routes)
+            print('''\t<route id="praia_icarai__centro" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="green"/>\n''', file=routes)
+
+            for flow in number_of_vehicles.keys():
+                probability = (number_of_vehicles[flow] / 3600) * multiplier
+                print('''\t<flow id="flow_''' + flow +
+                      '''" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="''' +
+                      str(probability) + '''"  route="''' + flow + '''"/>''', file=routes)
+            print("</routes>", file=routes)
+
+    @staticmethod
+    def get_options():
         opt_parser = optparse.OptionParser()
         opt_parser.add_option("--nogui", action="store_true", default=False, help="run the commandline version of sumo")
         options, args = opt_parser.parse_args()
