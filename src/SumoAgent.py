@@ -139,22 +139,22 @@ class SumoAgent:
             for i in range(self.yellow_light_time):
                 traci.trafficlight.setPhase(MAIN_SEMAPHORE, yellow_phase)
 
-                self.waiting_time += get_waiting_time()
+                self.waiting_time += self.get_waiting_time()
 
                 traci.simulationStep()
                 steps_elapsed += 1
 
         # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
-        self.reward_moving = get_num_of_moving_vehicles(moving_horizontal)
-        self.reward_halting = get_num_of_halting_vehicles(not moving_horizontal)
+        self.reward_moving = self.get_num_of_moving_vehicles(moving_horizontal)
+        self.reward_halting = self.get_num_of_halting_vehicles(not moving_horizontal)
 
         for i in range(self.green_light_time):
             traci.trafficlight.setPhase(MAIN_SEMAPHORE, phase)
 
-            self.waiting_time += get_waiting_time()
+            self.waiting_time += self.get_waiting_time()
             # Updates reward
-            self.reward_moving += get_num_of_moving_vehicles(moving_horizontal)
-            self.reward_halting += get_num_of_halting_vehicles(not moving_horizontal)
+            self.reward_moving += self.get_num_of_moving_vehicles(moving_horizontal)
+            self.reward_halting += self.get_num_of_halting_vehicles(not moving_horizontal)
 
             traci.simulationStep()
             steps_elapsed += 1
@@ -182,21 +182,21 @@ class SumoAgent:
 
         return self.waiting_time
 
+    @staticmethod
+    def get_waiting_time():
+        return (traci.edge.getLastStepHaltingNumber(TIRADENTES) +
+                traci.edge.getLastStepHaltingNumber(VISC_MORAES))
 
-def get_waiting_time():
-    return (traci.edge.getLastStepHaltingNumber(VISC_MORAES) +
-            traci.edge.getLastStepHaltingNumber(TIRADENTES))
+    @staticmethod
+    def get_num_of_moving_vehicles(horizontal=True):
+        if horizontal:
+            return traci.edge.getLastStepVehicleNumber(TIRADENTES)
+        else:
+            return traci.edge.getLastStepVehicleNumber(VISC_MORAES)
 
-
-def get_num_of_moving_vehicles(horizontal=True):
-    if horizontal:
-        return traci.edge.getLastStepVehicleNumber(VISC_MORAES)
-    else:
-        return traci.edge.getLastStepVehicleNumber(TIRADENTES)
-
-
-def get_num_of_halting_vehicles(horizontal=True):
-    if horizontal:
-        return traci.edge.getLastStepHaltingNumber(VISC_MORAES)
-    else:
-        return traci.edge.getLastStepHaltingNumber(TIRADENTES)
+    @staticmethod
+    def get_num_of_halting_vehicles(horizontal=True):
+        if horizontal:
+            return traci.edge.getLastStepHaltingNumber(TIRADENTES)
+        else:
+            return traci.edge.getLastStepHaltingNumber(VISC_MORAES)
