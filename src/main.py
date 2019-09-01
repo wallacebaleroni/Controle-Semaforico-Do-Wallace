@@ -22,8 +22,6 @@ if __name__ == '__main__':
                  "installation (it should contain folders 'bin', 'tools' and 'docs')")
 
     # Simulation parameters
-    vehicle_generation_seed = 42
-    vehicle_generation_probabilities = {'right': 1. / 15, 'left': 1. / 15, 'up': 1. / 15, 'down': 1. / 15}
     episode_timesteps = 3600
     episodes = 25
     batch_size = 32
@@ -33,7 +31,7 @@ if __name__ == '__main__':
     # Initialize DNN with random weights
     # Initialize target network with same weights as DNN Network
     network_agent = DeepQNetworkAgent(use_memory_palace)
-    sumo_agent = SumoAgent(vehicle_generation_probabilities, episode_timesteps, vehicle_generation_seed)
+    sumo_agent = SumoAgent(episode_timesteps)
 
     time_mean = 0
     sim_start_time = time.clock()
@@ -69,7 +67,6 @@ if __name__ == '__main__':
 
             print_progress_bar(steps, episode_timesteps, 20)
         print_progress_bar(episode_timesteps, episode_timesteps, 19)
-
 
         epi_end_time = time.clock()
         epi_time = epi_end_time - epi_start_time
