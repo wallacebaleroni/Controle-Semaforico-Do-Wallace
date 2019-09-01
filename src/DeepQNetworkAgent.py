@@ -7,13 +7,21 @@ from keras.models import Model
 
 
 class DeepQNetworkAgent:
-    def __init__(self):
+    def __init__(self, memory_palace):
         self.gamma = 0.95  # Discount rate
         self.epsilon = 0.1  # Exploration rate
         self.learning_rate = 0.0002
-        self.memory = deque(maxlen=200)
         self.model = self._build_model()
         self.action_size = 2
+        self.memory_palace = memory_palace
+        if self.memory_palace:
+            # state/action
+            # [[green_north_south/green_east_west, green_north_south/green_north_south],
+            # [[green_east_west/green_east_west,     green_east_west/green_north_south]]
+            self.memory = [[deque(maxlen=50), deque(maxlen=50)],
+                           [deque(maxlen=50), deque(maxlen=50)]]
+        else:
+            self.memory = deque(maxlen=200)
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
@@ -56,7 +64,11 @@ class DeepQNetworkAgent:
         return model
 
     def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
+        if self.memory_palace:
+            light_state = state[2][0][0][0]
+            self.memory[light_state][action].append((state, action, reward, next_state, done))
+        else:
+            self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -66,15 +78,38 @@ class DeepQNetworkAgent:
         return np.argmax(act_values[0])  # Returns action
 
     def replay(self, batch_size):
-        minibatch = random.sample(self.memory, batch_size)
-        for state, action, reward, next_state, done in minibatch:
-            target = reward
-            if not done:
-                target = (reward + self.gamma *
-                          np.amax(self.model.predict(next_state)[0]))
-            target_f = self.model.predict(state)
-            target_f[0][action] = target
-            self.model.fit(state, target_f, epochs=1, verbose=0)
+        if self.memory_palace:
+            # Iterates through every slot of the memory palace
+            for state_index in range(2):
+                for action_index in range(2):
+                    minibatch_size = min(len(self.memory[state_index][action_index]), int(batch_size / 4))
+                    minibatch = random.sample(self.memory[state_index][action_index], minibatch_size)
+
+                    for state, action, reward, next_state, done in minibatch:
+                        target = reward
+                        if not done:
+                            prediction = self.model.predict(next_state)
+                            target = (reward + self.gamma * np.amax(prediction[0]))
+                        target_f = self.model.predict(state)
+                        target_f[0][action] = target
+                        self.model.fit(state, target_f, epochs=1, verbose=0)
+        else:
+            minibatch = random.sample(self.memory, batch_size)
+            for state, action, reward, next_state, done in minibatch:
+                target = reward
+                if not done:
+                    target = (reward + self.gamma *
+                              np.amax(self.model.predict(next_state)[0]))
+                target_f = self.model.predict(state)
+                target_f[0][action] = target
+                self.model.fit(state, target_f, epochs=1, verbose=0)
+
+    def get_memory_size(self):
+        size = 0
+        for state_index in range(2):
+            for action_index in range(2):
+                size += len(self.memory[state_index][action_index])
+        return size
 
     def load(self, name):
         self.model.load_weights(name)

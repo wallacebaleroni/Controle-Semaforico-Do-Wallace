@@ -1,34 +1,8 @@
 import sys
 import time
-import optparse
-import random
-import numpy as np
-import traci
 
 from src.DeepQNetworkAgent import DeepQNetworkAgent
 from src.SumoAgent import SumoAgent
-
-# Constraints
-X = 0
-Y = 1
-MAIN_JUNCTION = '0'
-MAIN_SEMAPHORE = '0'
-
-LEFT_EDGE = '1i'
-RIGHT_EDGE = '2i'
-BOTTOM_EDGE = '3i'
-UPPER_EDGE = '4i'
-
-VGHR = 0  # vertical green  horizontal red
-VYHR = 1  # vertical yellow horizontal red
-VRHG = 2  # vertical red    horizontal green
-VRHY = 3  # vertical red    horizontal yellow
-
-RED = 0
-GREEN = 1
-
-HORIZONTAL_GREEN = 0
-VERTICAL_GREEN = 1
 
 
 def print_progress_bar(current, total, total_bars):
@@ -53,11 +27,12 @@ if __name__ == '__main__':
     episode_timesteps = 3600
     episodes = 25
     batch_size = 32
+    use_memory_palace = True
 
     # DNN Agent
     # Initialize DNN with random weights
     # Initialize target network with same weights as DNN Network
-    network_agent = DeepQNetworkAgent()
+    network_agent = DeepQNetworkAgent(use_memory_palace)
     sumo_agent = SumoAgent(vehicle_generation_probabilities, episode_timesteps, vehicle_generation_seed)
 
     time_mean = 0
@@ -85,15 +60,16 @@ if __name__ == '__main__':
             # Stores states for network tunning
             network_agent.remember(state, action, reward, next_state, False)
 
-            if len(network_agent.memory) > batch_size:
-                network_agent.replay(batch_size)
+            if use_memory_palace:
+                if network_agent.get_memory_size() > batch_size:
+                    network_agent.replay(batch_size)
+            else:
+                if len(network_agent.memory) > batch_size:
+                    network_agent.replay(batch_size)
 
             print_progress_bar(steps, episode_timesteps, 20)
         print_progress_bar(episode_timesteps, episode_timesteps, 19)
 
-        mem = network_agent.memory[-1]
-        del network_agent.memory[-1]
-        network_agent.memory.append((mem[0], mem[1], reward, mem[3], True))
 
         epi_end_time = time.clock()
         epi_time = epi_end_time - epi_start_time
@@ -107,7 +83,7 @@ if __name__ == '__main__':
               "\tExpected sim end in: %d minutes" %
               (episode_num + 1, waiting_time, epi_time, (time_mean * ((episodes - episode_num) - 1)) / 60))
 
-        log.write("Episode: %d \tTotal waiting time: %d\n" % (episode_num + 1, waiting_time))
+        log.write("Episode:\t%d\tTotal waiting time:\t%d\n" % (episode_num + 1, waiting_time))
         log.close()
 
     sim_end_time = time.clock()
