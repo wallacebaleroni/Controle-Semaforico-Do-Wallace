@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 09/01/19 14:56:46 by Eclipse SUMO netedit Version 1.0.1
+<!-- generated on 09/17/19 20:30:56 by Eclipse SUMO netedit Version 1.0.1
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
@@ -487,19 +487,6 @@
         <phase duration="40" state="GrrrG"/>
         <phase duration="5"  state="yrrrr"/>
     </tlLogic>
-    <tlLogic id="Tiradentes__Nilo_Pecanha" type="static" programID="0" offset="0">
-        <phase duration="40" state="rrGGr"/>
-        <phase duration="5"  state="rryrr"/>
-        <phase duration="40" state="GGrrG"/>
-        <phase duration="5"  state="yyrrr"/>
-    </tlLogic>
-    <tlLogic id="Tiradentes__Pereira_Nunes" type="static" programID="0" offset="0">
-        <phase duration="5"  state="rrrGG"/>
-        <phase duration="5"  state="rrrrr"/>
-        <phase duration="70" state="GGGrr"/>
-        <phase duration="5"  state="yyyrr"/>
-        <phase duration="5"  state="rrrrr"/>
-    </tlLogic>
     <tlLogic id="Tiradentes__Visconde_de_Morais" type="static" programID="0" offset="0">
         <phase duration="40" state="rrrGGGGr"/>
         <phase duration="5"  state="rrryyyrr"/>
@@ -556,14 +543,14 @@
         <request index="3" response="00000" foes="00001" cont="0"/>
         <request index="4" response="00000" foes="00110" cont="0"/>
     </junction>
-    <junction id="Tiradentes__Nilo_Pecanha" type="traffic_light" x="1223.24" y="1387.97" incLanes="Tiradentes#2_0 Tiradentes#2_1 Nilo_Pecanha#1_0 :Tiradentes__Nilo_Pecanha_w1_0 :Tiradentes__Nilo_Pecanha_w0_0" intLanes=":Tiradentes__Nilo_Pecanha_0_0 :Tiradentes__Nilo_Pecanha_0_1 :Tiradentes__Nilo_Pecanha_2_0 :Tiradentes__Nilo_Pecanha_c0_0 :Tiradentes__Nilo_Pecanha_c1_0" shape="1230.84,1390.61 1230.36,1384.23 1226.94,1383.79 1225.65,1383.02 1224.65,1381.88 1223.93,1380.37 1223.49,1378.49 1220.32,1378.95 1220.13,1382.29 1219.47,1383.50 1218.42,1384.39 1217.00,1384.98 1215.19,1385.26 1215.58,1391.65" radius="6.00">
+    <junction id="Tiradentes__Nilo_Pecanha" type="priority" x="1223.24" y="1387.97" incLanes="Tiradentes#2_0 Tiradentes#2_1 Nilo_Pecanha#1_0 :Tiradentes__Nilo_Pecanha_w1_0 :Tiradentes__Nilo_Pecanha_w0_0" intLanes=":Tiradentes__Nilo_Pecanha_0_0 :Tiradentes__Nilo_Pecanha_0_1 :Tiradentes__Nilo_Pecanha_2_0 :Tiradentes__Nilo_Pecanha_c0_0 :Tiradentes__Nilo_Pecanha_c1_0" shape="1230.84,1390.61 1230.36,1384.23 1226.94,1383.79 1225.65,1383.02 1224.65,1381.88 1223.93,1380.37 1223.49,1378.49 1220.32,1378.95 1220.13,1382.29 1219.47,1383.50 1218.42,1384.39 1217.00,1384.98 1215.19,1385.26 1215.58,1391.65" radius="6.00">
         <request index="0" response="01000" foes="01100" cont="0"/>
         <request index="1" response="01000" foes="01100" cont="0"/>
         <request index="2" response="10011" foes="10011" cont="0"/>
         <request index="3" response="00000" foes="00011" cont="0"/>
         <request index="4" response="00000" foes="00100" cont="0"/>
     </junction>
-    <junction id="Tiradentes__Pereira_Nunes" type="traffic_light" x="1317.20" y="1380.98" incLanes="Tiradentes#1_0 Tiradentes#1_1 :Tiradentes__Pereira_Nunes_w1_0 :Tiradentes__Pereira_Nunes_w0_0" intLanes=":Tiradentes__Pereira_Nunes_0_0 :Tiradentes__Pereira_Nunes_0_1 :Tiradentes__Pereira_Nunes_2_0 :Tiradentes__Pereira_Nunes_c0_0 :Tiradentes__Pereira_Nunes_c1_0" shape="1324.89,1383.63 1324.43,1377.25 1321.03,1376.81 1319.78,1376.05 1318.82,1374.93 1318.15,1373.45 1317.78,1371.60 1314.60,1371.95 1314.30,1375.31 1313.60,1376.54 1312.52,1377.45 1311.08,1378.06 1309.27,1378.36 1309.75,1384.74" radius="6.00">
+    <junction id="Tiradentes__Pereira_Nunes" type="priority" x="1317.20" y="1380.98" incLanes="Tiradentes#1_0 Tiradentes#1_1 :Tiradentes__Pereira_Nunes_w1_0 :Tiradentes__Pereira_Nunes_w0_0" intLanes=":Tiradentes__Pereira_Nunes_0_0 :Tiradentes__Pereira_Nunes_0_1 :Tiradentes__Pereira_Nunes_2_0 :Tiradentes__Pereira_Nunes_c0_0 :Tiradentes__Pereira_Nunes_c1_0" shape="1324.89,1383.63 1324.43,1377.25 1321.03,1376.81 1319.78,1376.05 1318.82,1374.93 1318.15,1373.45 1317.78,1371.60 1314.60,1371.95 1314.30,1375.31 1313.60,1376.54 1312.52,1377.45 1311.08,1378.06 1309.27,1378.36 1309.75,1384.74" radius="6.00">
         <request index="0" response="11000" foes="11000" cont="0"/>
         <request index="1" response="11000" foes="11000" cont="0"/>
         <request index="2" response="01000" foes="01000" cont="0"/>
@@ -617,7 +604,7 @@
     <connection from="Fagundes_Varela#-1" to="Sao_Sebastiao#1" fromLane="0" toLane="1" via=":Paulo_Alves__Fagundes_Varela_1_0" tl="Paulo_Alves__Fagundes_Varela" linkIndex="1" dir="r" state="o"/>
     <connection from="Fagundes_Varela#-1" to="Tiradentes#1" fromLane="0" toLane="0" via=":Paulo_Alves__Fagundes_Varela_2_0" tl="Paulo_Alves__Fagundes_Varela" linkIndex="2" dir="s" state="o"/>
     <connection from="Fagundes_Varela#-1" to="Tiradentes#1" fromLane="0" toLane="1" via=":Paulo_Alves__Fagundes_Varela_2_1" tl="Paulo_Alves__Fagundes_Varela" linkIndex="3" dir="s" state="o"/>
-    <connection from="Nilo_Pecanha#1" to="Tiradentes#3" fromLane="0" toLane="1" via=":Tiradentes__Nilo_Pecanha_2_0" tl="Tiradentes__Nilo_Pecanha" linkIndex="2" dir="l" state="o"/>
+    <connection from="Nilo_Pecanha#1" to="Tiradentes#3" fromLane="0" toLane="1" via=":Tiradentes__Nilo_Pecanha_2_0" dir="l" state="m"/>
     <connection from="Paulo_Alves#1" to="Paulo_Alves#2" fromLane="0" toLane="0" keepClear="0" via=":gneJ16_1_0" dir="s" state="M"/>
     <connection from="Paulo_Alves#1" to="Paulo_Alves#2" fromLane="1" toLane="1" keepClear="0" via=":gneJ16_1_1" dir="s" state="M"/>
     <connection from="Paulo_Alves#2" to="Paulo_Alves#3" fromLane="0" toLane="0" via=":Presidente_Pedreira__Paulo_Alves#2_0_0" tl="Presidente_Pedreira__Paulo_Alves" linkIndex="2" dir="s" state="o"/>
@@ -645,11 +632,11 @@
     <connection from="Presidente_Pedreira#5" to="Presidente_Pedreira#6L" fromLane="1" toLane="0" via=":Presidente_Pedreira__Paulo_Alves#1_1_0" tl="Presidente_Pedreira__Paulo_Alves" linkIndex="1" dir="l" state="o"/>
     <connection from="Presidente_Pedreira#6L" to="Paulo_Alves#4" fromLane="0" toLane="1" pass="1" keepClear="0" via=":gneJ26_2_0" dir="s" state="M"/>
     <connection from="Presidente_Pedreira#6R" to="Paulo_Alves#-1" fromLane="0" toLane="0" keepClear="0" via=":gneJ16_0_0" dir="s" state="M"/>
-    <connection from="Tiradentes#1" to="Tiradentes#2" fromLane="0" toLane="0" via=":Tiradentes__Pereira_Nunes_0_0" tl="Tiradentes__Pereira_Nunes" linkIndex="0" dir="s" state="o"/>
-    <connection from="Tiradentes#1" to="Tiradentes#2" fromLane="1" toLane="1" via=":Tiradentes__Pereira_Nunes_0_1" tl="Tiradentes__Pereira_Nunes" linkIndex="1" dir="s" state="o"/>
-    <connection from="Tiradentes#1" to="Pereira_Nunes#1" fromLane="1" toLane="0" via=":Tiradentes__Pereira_Nunes_2_0" tl="Tiradentes__Pereira_Nunes" linkIndex="2" dir="l" state="o"/>
-    <connection from="Tiradentes#2" to="Tiradentes#3" fromLane="0" toLane="0" via=":Tiradentes__Nilo_Pecanha_0_0" tl="Tiradentes__Nilo_Pecanha" linkIndex="0" dir="s" state="o"/>
-    <connection from="Tiradentes#2" to="Tiradentes#3" fromLane="1" toLane="1" via=":Tiradentes__Nilo_Pecanha_0_1" tl="Tiradentes__Nilo_Pecanha" linkIndex="1" dir="s" state="o"/>
+    <connection from="Tiradentes#1" to="Tiradentes#2" fromLane="0" toLane="0" via=":Tiradentes__Pereira_Nunes_0_0" dir="s" state="m"/>
+    <connection from="Tiradentes#1" to="Tiradentes#2" fromLane="1" toLane="1" via=":Tiradentes__Pereira_Nunes_0_1" dir="s" state="m"/>
+    <connection from="Tiradentes#1" to="Pereira_Nunes#1" fromLane="1" toLane="0" via=":Tiradentes__Pereira_Nunes_2_0" dir="l" state="m"/>
+    <connection from="Tiradentes#2" to="Tiradentes#3" fromLane="0" toLane="0" via=":Tiradentes__Nilo_Pecanha_0_0" dir="s" state="m"/>
+    <connection from="Tiradentes#2" to="Tiradentes#3" fromLane="1" toLane="1" via=":Tiradentes__Nilo_Pecanha_0_1" dir="s" state="m"/>
     <connection from="Tiradentes#3" to="Tiradentes#4" fromLane="0" toLane="1" via=":Tiradentes__Visconde_de_Morais_0_0" tl="Tiradentes__Visconde_de_Morais" linkIndex="0" dir="s" state="o"/>
     <connection from="Tiradentes#3" to="Tiradentes#4" fromLane="1" toLane="1" via=":Tiradentes__Visconde_de_Morais_0_1" tl="Tiradentes__Visconde_de_Morais" linkIndex="1" dir="s" state="o"/>
     <connection from="Tiradentes#3" to="Visconde_de_Morais#2" fromLane="1" toLane="1" via=":Tiradentes__Visconde_de_Morais_2_0" tl="Tiradentes__Visconde_de_Morais" linkIndex="2" dir="l" state="o"/>
@@ -733,12 +720,12 @@
     <connection from=":Presidente_Pedreira__Pereira_Nunes_w1" to=":Presidente_Pedreira__Pereira_Nunes_c0" fromLane="0" toLane="0" tl="Presidente_Pedreira__Pereira_Nunes" linkIndex="3" dir="s" state="M"/>
     <connection from=":Tiradentes__Nilo_Pecanha_c0" to=":Tiradentes__Nilo_Pecanha_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":Tiradentes__Nilo_Pecanha_c1" to=":Tiradentes__Nilo_Pecanha_w1" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":Tiradentes__Nilo_Pecanha_w0" to=":Tiradentes__Nilo_Pecanha_c1" fromLane="0" toLane="0" tl="Tiradentes__Nilo_Pecanha" linkIndex="4" dir="s" state="M"/>
-    <connection from=":Tiradentes__Nilo_Pecanha_w1" to=":Tiradentes__Nilo_Pecanha_c0" fromLane="0" toLane="0" tl="Tiradentes__Nilo_Pecanha" linkIndex="3" dir="s" state="M"/>
+    <connection from=":Tiradentes__Nilo_Pecanha_w0" to=":Tiradentes__Nilo_Pecanha_c1" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":Tiradentes__Nilo_Pecanha_w1" to=":Tiradentes__Nilo_Pecanha_c0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":Tiradentes__Pereira_Nunes_c0" to=":Tiradentes__Pereira_Nunes_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":Tiradentes__Pereira_Nunes_c1" to=":Tiradentes__Pereira_Nunes_w1" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":Tiradentes__Pereira_Nunes_w0" to=":Tiradentes__Pereira_Nunes_c1" fromLane="0" toLane="0" tl="Tiradentes__Pereira_Nunes" linkIndex="4" dir="s" state="M"/>
-    <connection from=":Tiradentes__Pereira_Nunes_w1" to=":Tiradentes__Pereira_Nunes_c0" fromLane="0" toLane="0" tl="Tiradentes__Pereira_Nunes" linkIndex="3" dir="s" state="M"/>
+    <connection from=":Tiradentes__Pereira_Nunes_w0" to=":Tiradentes__Pereira_Nunes_c1" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":Tiradentes__Pereira_Nunes_w1" to=":Tiradentes__Pereira_Nunes_c0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":Tiradentes__Visconde_de_Morais_c0" to=":Tiradentes__Visconde_de_Morais_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":Tiradentes__Visconde_de_Morais_c1" to=":Tiradentes__Visconde_de_Morais_w1" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":Tiradentes__Visconde_de_Morais_w0" to=":Tiradentes__Visconde_de_Morais_c1" fromLane="0" toLane="0" tl="Tiradentes__Visconde_de_Morais" linkIndex="7" dir="s" state="M"/>
