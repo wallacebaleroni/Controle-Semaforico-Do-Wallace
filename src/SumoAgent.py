@@ -69,7 +69,10 @@ class SumoAgent:
                               'icarai_meio__centro': 500,
                               'icarai_meio__icarai_praia': 200,
                               'praia_icarai__UFF': 1000,
-                              'praia_icarai__centro': 1800}
+                              'praia_icarai__centro': 1800,
+                              'MAC__icarai_meio': 100,
+                              'MAC__centro': 100,
+                              'icarai_meio__MAC': 100}
         multiplier = 0.6
 
         with open("../sim/inga/inga.rou.xml", "w") as routes:
@@ -81,7 +84,11 @@ class SumoAgent:
             print('''\t<route id="icarai_meio__centro" edges="Fagundes_Varela#-1 Sao_Sebastiao#1" color="magenta"/>''', file=routes)
             print('''\t<route id="icarai_meio__icarai_praia" edges="Fagundes_Varela#-1 Tiradentes#1 Pereira_Nunes#1 Presidente_Pedreira#5 Presidente_Pedreira#6R Paulo_Alves#-1" color="250,235,215"/>''', file=routes)
             print('''\t<route id="praia_icarai__UFF" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Tiradentes#1 Tiradentes#2 Tiradentes#3 Tiradentes#4" color="yellow"/>''', file=routes)
-            print('''\t<route id="praia_icarai__centro" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="green"/>\n''', file=routes)
+            print('''\t<route id="praia_icarai__centro" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="green"/>''', file=routes)
+            print('''\t<route id="MAC__icarai_meio" edges="Nilo_Pecanha#0 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Fagundes_Varela#1" color="255,255,255"/>''', file=routes)
+            print('''\t<route id="MAC__centro" edges="Nilo_Pecanha#0 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="0,0,0"/>''', file=routes)
+            print('''\t<route id="icarai_meio__MAC" edges="Fagundes_Varela#-1 Tiradentes#1 Pereira_Nunes#1 Pereira_Nunes#2" color="127,127,127"/>''', file=routes)
+            print("")
 
             for flow in number_of_vehicles.keys():
                 probability = (number_of_vehicles[flow] / 3600) * multiplier
