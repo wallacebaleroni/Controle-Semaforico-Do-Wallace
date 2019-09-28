@@ -72,15 +72,24 @@ if __name__ == '__main__':
         epi_time = epi_end_time - epi_start_time
         time_mean = ((time_mean * episode_num) + epi_time) / (episode_num + 1)
 
-        waiting_time = sumo_agent.end_sim()
+        controled_tls, monitored_tls = sumo_agent.end_sim()
 
         print("\nEpisode: %d\n"
-              "\tTotal waiting time: %d seconds\n"
+              "\tTotal waiting on main TLS time: %d seconds\n"
               "\tEpisode length: %d seconds\n"
               "\tExpected sim end in: %d minutes" %
-              (episode_num + 1, waiting_time, epi_time, (time_mean * ((episodes - episode_num) - 1)) / 60))
+              (episode_num + 1, controled_tls['waiting_time'], epi_time,
+               (time_mean * ((episodes - episode_num) - 1)) / 60))
+        for tls in monitored_tls:
+            print("\tTotal waiting time on %s: %d seconds" % (tls['id'], tls['waiting_time']))
 
-        log.write("Episode:\t%d\tTotal waiting time:\t%d\n" % (episode_num + 1, waiting_time))
+        main_message = "Episode:\t%d\tTotal waiting time:\t%d" % (episode_num + 1, controled_tls['waiting_time'])
+        secondary_message = ""
+        for tls in monitored_tls:
+            secondary_message += "\tWaiting time on %s:\t%d" % (tls['id'], tls['waiting_time'])
+        secondary_message += '\n'
+
+        log.write(main_message + secondary_message)
         log.close()
 
     sim_end_time = time.clock()
