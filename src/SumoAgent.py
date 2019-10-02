@@ -66,9 +66,9 @@ class SumoAgent:
                               'icarai_meio__icarai_praia': 200,
                               'praia_icarai__UFF': 1000,
                               'praia_icarai__centro': 1800}
-        multiplier = 0.6
+        multiplier = 0.4
 
-        with open("sim/inga/inga.rou.xml", "w") as routes:
+        with open("../sim/inga/inga.rou.xml", "w") as routes:
             print('''<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">''', file=routes)
             print('''\t<route id="UFF__UFF__retorno" edges="Presidente_Pedreira#1 Presidente_Pedreira#2 Presidente_Pedreira#3 Nilo_Pecanha#1 Tiradentes#3 Tiradentes#4" color="127,255,212"/>''', file=routes)
             print('''\t<route id="UFF__icarai_meio" edges="Presidente_Pedreira#1 Presidente_Pedreira#2 Presidente_Pedreira#3 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Fagundes_Varela#1" color="cyan"/>''', file=routes)
@@ -98,7 +98,7 @@ class SumoAgent:
         self.reward_moving = 0
         self.reward_halting = 0
 
-        traci.start([self.sumoBinary, "-c", "sim/inga/inga.sumocfg", '--start', '--quit-on-end'])
+        traci.start([self.sumoBinary, "-c", "../sim/inga/inga.sumocfg", '--start', '--quit-on-end'])
         traci.trafficlight.setPhase(MAIN_SEMAPHORE, 0)
         traci.trafficlight.setPhaseDuration(MAIN_SEMAPHORE, 200)
 
