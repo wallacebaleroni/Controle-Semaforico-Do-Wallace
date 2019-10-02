@@ -12,8 +12,8 @@
 	<flow id="flow_UFF__icarai_meio" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.044444444444444446"  route="UFF__icarai_meio"/>
 	<flow id="flow_UFF__praia_icarai" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.011111111111111112"  route="UFF__praia_icarai"/>
 	<flow id="flow_centro__praia_icarai" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.2"  route="centro__praia_icarai"/>
-	<flow id="flow_icarai_meio__centro" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.05555555555555556"  route="icarai_meio__centro"/>
+	<flow id="flow_icarai_meio__centro" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.05555555555555555"  route="icarai_meio__centro"/>
 	<flow id="flow_icarai_meio__icarai_praia" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.022222222222222223"  route="icarai_meio__icarai_praia"/>
-	<flow id="flow_praia_icarai__UFF" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.11111111111111112"  route="praia_icarai__UFF"/>
+	<flow id="flow_praia_icarai__UFF" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.1111111111111111"  route="praia_icarai__UFF"/>
 	<flow id="flow_praia_icarai__centro" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.2"  route="praia_icarai__centro"/>
 </routes>

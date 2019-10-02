@@ -58,15 +58,15 @@ class SumoAgent:
 
     @staticmethod
     def generate_routefile():
-        number_of_vehicles = {'UFF__UFF__retorno': 150,
-                              'UFF__icarai_meio': 400,
-                              'UFF__praia_icarai': 100,
-                              'centro__praia_icarai': 1800,
-                              'icarai_meio__centro': 500,
-                              'icarai_meio__icarai_praia': 200,
-                              'praia_icarai__UFF': 1000,
-                              'praia_icarai__centro': 1800}
-        multiplier = 0.4
+        number_of_vehicles = {'UFF__UFF__retorno': 60,
+                              'UFF__icarai_meio': 160,
+                              'UFF__praia_icarai': 40,
+                              'centro__praia_icarai': 720,
+                              'icarai_meio__centro': 200,
+                              'icarai_meio__icarai_praia': 80,
+                              'praia_icarai__UFF': 400,
+                              'praia_icarai__centro': 720}
+        multiplier = 1
 
         with open("../sim/inga/inga.rou.xml", "w") as routes:
             print('''<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">''', file=routes)
