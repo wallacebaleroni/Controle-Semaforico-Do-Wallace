@@ -115,14 +115,14 @@ class SumoAgent:
         vehicles_road2 = traci.edge.getLastStepVehicleIDs(TIRADENTES)
 
         for v in vehicles_road1:
-            next_tls_distance = self.get_next_tls_distance(v)
+            next_tls_distance = self.__get_next_tls_distance(v)
             ind = int(next_tls_distance / cell_length)
             if ind < max_cell_dist:
                 position_matrix[traci.vehicle.getLaneIndex(v)][(max_cell_dist - 1) - ind] = 1
                 velocity_matrix[traci.vehicle.getLaneIndex(v)][(max_cell_dist - 1) - ind] = traci.vehicle.getSpeed(v) / speed_limit
 
         for v in vehicles_road2:
-            next_tls_distance = self.get_next_tls_distance(v)
+            next_tls_distance = self.__get_next_tls_distance(v)
             ind = int(next_tls_distance / cell_length)
             if ind < max_cell_dist:
                 position_matrix[2 + traci.vehicle.getLaneIndex(v)][ind] = 1
@@ -151,18 +151,18 @@ class SumoAgent:
 
         if horizontal_light_state == RED and action == HORIZONTAL_GREEN:
             # Vertical green -> horizontal green
-            return self._act_semaphore(VRHG, True, VYHR)
+            return self.__act_semaphore(VRHG, True, VYHR)
         elif horizontal_light_state == GREEN and action == HORIZONTAL_GREEN:
             # Horizontal green -> horizontal green
-            return self._act_semaphore(VRHG, True)
+            return self.__act_semaphore(VRHG, True)
         elif horizontal_light_state == RED and action == VERTICAL_GREEN:
             # Vertical green -> vertical green
-            return self._act_semaphore(VGHR, False)
+            return self.__act_semaphore(VGHR, False)
         elif horizontal_light_state == GREEN and action == VERTICAL_GREEN:
             # Horizontal green -> vertical green
-            return self._act_semaphore(VGHR, False, VRHY)
+            return self.__act_semaphore(VGHR, False, VRHY)
 
-    def _act_semaphore(self, phase, moving_horizontal, yellow_phase=None):
+    def __act_semaphore(self, phase, moving_horizontal, yellow_phase=None):
         steps_elapsed = 0
 
         if yellow_phase is not None:
@@ -176,16 +176,16 @@ class SumoAgent:
                 steps_elapsed += 1
 
         # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
-        self.reward_moving = self.get_num_of_moving_vehicles(moving_horizontal)
-        self.reward_halting = self.get_num_of_halting_vehicles(not moving_horizontal)
+        self.reward_moving = self.__get_num_of_moving_vehicles(moving_horizontal)
+        self.reward_halting = self.__get_num_of_halting_vehicles(not moving_horizontal)
 
         for i in range(self.green_light_time):
             traci.trafficlight.setPhase(MAIN_SEMAPHORE, phase)
 
             self.waiting_time += self.get_waiting_time()
             # Updates reward
-            self.reward_moving += self.get_num_of_moving_vehicles(moving_horizontal)
-            self.reward_halting += self.get_num_of_halting_vehicles(not moving_horizontal)
+            self.reward_moving += self.__get_num_of_moving_vehicles(moving_horizontal)
+            self.reward_halting += self.__get_num_of_halting_vehicles(not moving_horizontal)
 
             traci.simulationStep()
             steps_elapsed += 1
@@ -200,7 +200,7 @@ class SumoAgent:
         return traci.simulation.getMinExpectedNumber()
 
     @staticmethod
-    def get_next_tls_distance(vehicle):
+    def __get_next_tls_distance(vehicle):
         next_tls = traci.vehicle.getNextTLS(vehicle)[0]
 
         if next_tls[0] != MAIN_SEMAPHORE:
@@ -219,14 +219,14 @@ class SumoAgent:
                 traci.edge.getLastStepHaltingNumber(VISC_MORAES))
 
     @staticmethod
-    def get_num_of_moving_vehicles(horizontal=True):
+    def __get_num_of_moving_vehicles(horizontal=True):
         if horizontal:
             return traci.edge.getLastStepVehicleNumber(TIRADENTES)
         else:
             return traci.edge.getLastStepVehicleNumber(VISC_MORAES)
 
     @staticmethod
-    def get_num_of_halting_vehicles(horizontal=True):
+    def __get_num_of_halting_vehicles(horizontal=True):
         if horizontal:
             return traci.edge.getLastStepHaltingNumber(TIRADENTES)
         else:
