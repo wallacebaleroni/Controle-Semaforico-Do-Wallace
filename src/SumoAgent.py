@@ -5,14 +5,6 @@ import numpy as np
 import traci
 
 # Constraints
-X = 0
-Y = 1
-
-MAIN_SEMAPHORE = "Tiradentes__Visconde_de_Morais"
-
-VISC_MORAES = "Visconde_de_Morais#1"
-TIRADENTES = "Tiradentes#3"
-
 VGHR = 0  # vertical green  horizontal red
 VYHR = 1  # vertical yellow horizontal red
 VRHG = 2  # vertical red    horizontal green
@@ -26,7 +18,7 @@ VERTICAL_GREEN = 1
 
 
 class SumoAgent:
-    def __init__(self, episode_timesteps, seed=None):
+    def __init__(self, episode_timesteps, controlled_tls_id, monitored_tls_ids=(), seed=None):
         self.episode_timesteps = episode_timesteps  # Number of time steps per episode
         if seed is not None:
             random.seed(seed)  # Make tests reproducible
@@ -45,13 +37,24 @@ class SumoAgent:
             self.sumoBinary = checkBinary('sumo-gui')
         self.generate_routefile()
 
+        self.controlled_tls = {'id': controlled_tls_id, 'waiting_time': 0,
+                               'horizontal_edge': None, 'vertical_edge': None}
+
+        self.monitored_tls = []
+        if type(monitored_tls_ids) != list:
+            self.monitored_tls.append({'id': monitored_tls_ids, 'waiting_time': 0,
+                                       'horizontal_edge': None, 'vertical_edge': None})
+        else:
+            for monitored_tls_id in monitored_tls_ids:
+                self.monitored_tls.append({'id': monitored_tls_id, 'waiting_time': 0,
+                                           'horizontal_edge': None, 'vertical_edge': None})
+
         self.yellow_light_time = 6
         self.green_light_time = 10
 
         self.horizontal_light_state = None
         self.state = None
 
-        self.waiting_time = 0
         self.reward_moving = 0
         self.reward_halting = 0
 
@@ -93,13 +96,30 @@ class SumoAgent:
         return options
 
     def start_sim(self):
-        self.waiting_time = 0
-        self.reward_moving = 0
-        self.reward_halting = 0
-
         traci.start([self.sumoBinary, "-c", "../sim/inga/inga.sumocfg", '--start', '--quit-on-end'])
-        traci.trafficlight.setPhase(MAIN_SEMAPHORE, 0)
-        traci.trafficlight.setPhaseDuration(MAIN_SEMAPHORE, 200)
+
+        self.controlled_tls['waiting_time'] = 0
+        self.__set_influenced_edges(self.controlled_tls)
+        for tls in self.monitored_tls:
+            tls['waiting_time'] = 0
+            self.__set_influenced_edges(tls)
+
+    @staticmethod
+    def __set_influenced_edges(tls):
+        edges = []
+
+        for lane in traci.trafficlight.getControlledLanes(tls['id']):
+            if lane[0] is ':':  # Walking areas ids starts with ':'
+                continue
+
+            if lane[:-2] not in edges:
+                edges.append(lane[:-2])
+
+        if len(edges) > 2:
+            print("WARNING: TLS %s influences %d edges, it should influence 2" % (tls['id'], len(edges)))
+
+        tls['horizontal_edge'] = edges[0]
+        tls['vertical_edge'] = edges[1]
 
     def get_state(self):
         n_lanes = 8
@@ -111,8 +131,8 @@ class SumoAgent:
         cell_length = 7
         speed_limit = 14
 
-        vehicles_road1 = traci.edge.getLastStepVehicleIDs(VISC_MORAES)
-        vehicles_road2 = traci.edge.getLastStepVehicleIDs(TIRADENTES)
+        vehicles_road1 = traci.edge.getLastStepVehicleIDs(self.controlled_tls['vertical_edge'])
+        vehicles_road2 = traci.edge.getLastStepVehicleIDs(self.controlled_tls['horizontal_edge'])
 
         for v in vehicles_road1:
             next_tls_distance = self.__get_next_tls_distance(v)
@@ -128,7 +148,7 @@ class SumoAgent:
                 position_matrix[2 + traci.vehicle.getLaneIndex(v)][ind] = 1
                 velocity_matrix[2 + traci.vehicle.getLaneIndex(v)][ind] = traci.vehicle.getSpeed(v) / speed_limit
 
-        if traci.trafficlight.getPhase(MAIN_SEMAPHORE) == VRHG:
+        if traci.trafficlight.getPhase(self.controlled_tls['id']) == VRHG:
             light = [1, 0]
         else:
             light = [0, 1]
@@ -168,9 +188,9 @@ class SumoAgent:
         if yellow_phase is not None:
             # Sets vertical yellow (transition phase) for 6 seconds
             for i in range(self.yellow_light_time):
-                traci.trafficlight.setPhase(MAIN_SEMAPHORE, yellow_phase)
+                traci.trafficlight.setPhase(self.controlled_tls['id'], yellow_phase)
 
-                self.waiting_time += self.get_waiting_time()
+                self.__update_waiting_times()
 
                 traci.simulationStep()
                 steps_elapsed += 1
@@ -180,9 +200,10 @@ class SumoAgent:
         self.reward_halting = self.__get_num_of_halting_vehicles(not moving_horizontal)
 
         for i in range(self.green_light_time):
-            traci.trafficlight.setPhase(MAIN_SEMAPHORE, phase)
+            traci.trafficlight.setPhase(self.controlled_tls['id'], phase)
 
-            self.waiting_time += self.get_waiting_time()
+            self.__update_waiting_times()
+
             # Updates reward
             self.reward_moving += self.__get_num_of_moving_vehicles(moving_horizontal)
             self.reward_halting += self.__get_num_of_halting_vehicles(not moving_horizontal)
@@ -199,11 +220,10 @@ class SumoAgent:
     def num_of_vehicles_still_in_simulation():
         return traci.simulation.getMinExpectedNumber()
 
-    @staticmethod
-    def __get_next_tls_distance(vehicle):
+    def __get_next_tls_distance(self, vehicle):
         next_tls = traci.vehicle.getNextTLS(vehicle)[0]
 
-        if next_tls[0] != MAIN_SEMAPHORE:
+        if next_tls[0] != self.controlled_tls['id']:
             return "Incorrect semaphore: The first position form getNextTLS isn't returning the expected TLS"
 
         return next_tls[2]
@@ -211,23 +231,24 @@ class SumoAgent:
     def end_sim(self):
         traci.close(wait=False)
 
-        return self.waiting_time
+        return self.controlled_tls['waiting_time']
 
-    @staticmethod
-    def get_waiting_time():
-        return (traci.edge.getLastStepHaltingNumber(TIRADENTES) +
-                traci.edge.getLastStepHaltingNumber(VISC_MORAES))
+    def __update_waiting_times(self):
+        self.controlled_tls['waiting_time'] += (traci.edge.getLastStepHaltingNumber(self.controlled_tls['vertical_edge']) +
+                                                traci.edge.getLastStepHaltingNumber(self.controlled_tls['horizontal_edge']))
 
-    @staticmethod
-    def __get_num_of_moving_vehicles(horizontal=True):
+        for tls in self.monitored_tls:
+            tls['waiting_time'] += (traci.edge.getLastStepHaltingNumber(tls['vertical_edge']) +
+                                    traci.edge.getLastStepHaltingNumber(tls['horizontal_edge']))
+
+    def __get_num_of_moving_vehicles(self, horizontal=True):
         if horizontal:
-            return traci.edge.getLastStepVehicleNumber(TIRADENTES)
+            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['horizontal_edge'])
         else:
-            return traci.edge.getLastStepVehicleNumber(VISC_MORAES)
+            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['vertical_edge'])
 
-    @staticmethod
-    def __get_num_of_halting_vehicles(horizontal=True):
+    def __get_num_of_halting_vehicles(self, horizontal=True):
         if horizontal:
-            return traci.edge.getLastStepHaltingNumber(TIRADENTES)
+            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['horizontal_edge'])
         else:
-            return traci.edge.getLastStepHaltingNumber(VISC_MORAES)
+            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['vertical_edge'])
