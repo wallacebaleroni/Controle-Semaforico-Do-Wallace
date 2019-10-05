@@ -7,7 +7,9 @@
 	<route id="icarai_meio__icarai_praia" edges="Fagundes_Varela#-1 Tiradentes#1 Pereira_Nunes#1 Presidente_Pedreira#5 Presidente_Pedreira#6R Paulo_Alves#-1" color="250,235,215"/>
 	<route id="praia_icarai__UFF" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Tiradentes#1 Tiradentes#2 Tiradentes#3 Tiradentes#4" color="yellow"/>
 	<route id="praia_icarai__centro" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="green"/>
-
+	<route id="MAC__icarai_meio" edges="Nilo_Pecanha#0 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Fagundes_Varela#1" color="255,255,255"/>
+	<route id="MAC__centro" edges="Nilo_Pecanha#0 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="128,0,128"/>
+	<route id="icarai_meio__MAC" edges="Fagundes_Varela#-1 Tiradentes#1 Pereira_Nunes#1 Pereira_Nunes#2" color="127,127,127"/>
 	<flow id="flow_UFF__UFF__retorno" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.016666666666666666"  route="UFF__UFF__retorno"/>
 	<flow id="flow_UFF__icarai_meio" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.044444444444444446"  route="UFF__icarai_meio"/>
 	<flow id="flow_UFF__praia_icarai" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.011111111111111112"  route="UFF__praia_icarai"/>
@@ -16,4 +18,7 @@
 	<flow id="flow_icarai_meio__icarai_praia" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.022222222222222223"  route="icarai_meio__icarai_praia"/>
 	<flow id="flow_praia_icarai__UFF" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.1111111111111111"  route="praia_icarai__UFF"/>
 	<flow id="flow_praia_icarai__centro" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.2"  route="praia_icarai__centro"/>
+	<flow id="flow_MAC__icarai_meio" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.027777777777777776"  route="MAC__icarai_meio"/>
+	<flow id="flow_MAC__centro" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.027777777777777776"  route="MAC__centro"/>
+	<flow id="flow_icarai_meio__MAC" type="DEFAULT_VEHTYPE" begin="0.00" end="3600.00" probability="0.027777777777777776"  route="icarai_meio__MAC"/>
 </routes>
