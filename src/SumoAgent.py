@@ -45,7 +45,7 @@ class SumoAgent:
                                'horizontal_edge': None, 'vertical_edge': None}
 
         self.monitored_tls = []
-        if type(monitored_tls_ids) != list:
+        if type(monitored_tls_ids) == str:
             self.monitored_tls.append({'id': monitored_tls_ids, 'waiting_time': 0,
                                        'horizontal_edge': None, 'vertical_edge': None})
         else:
