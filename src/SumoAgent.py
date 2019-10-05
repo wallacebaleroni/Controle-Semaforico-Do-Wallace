@@ -207,8 +207,8 @@ class SumoAgent:
                 steps_elapsed += 1
 
         # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
-        self.reward_moving = self.__get_num_of_moving_vehicles(moving_horizontal)
-        self.reward_halting = self.__get_num_of_halting_vehicles(not moving_horizontal)
+        self.reward_moving = self.__get_num_of_moving_vehicles(not moving_horizontal)
+        self.reward_halting = self.__get_num_of_halting_vehicles(moving_horizontal)
 
         for i in range(self.green_light_time):
             traci.trafficlight.setPhase(self.controlled_tls['id'], phase)
@@ -216,8 +216,8 @@ class SumoAgent:
             self.__update_waiting_times()
 
             # Updates reward
-            self.reward_moving += self.__get_num_of_moving_vehicles(moving_horizontal)
-            self.reward_halting += self.__get_num_of_halting_vehicles(not moving_horizontal)
+            self.reward_moving += self.__get_num_of_moving_vehicles(not moving_horizontal)
+            self.reward_halting += self.__get_num_of_halting_vehicles(moving_horizontal)
 
             traci.simulationStep()
             steps_elapsed += 1

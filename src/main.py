@@ -39,7 +39,9 @@ if __name__ == '__main__':
     # Initialize DNN with random weights
     # Initialize target network with same weights as DNN Network
     network_agent = DeepQNetworkAgent(use_memory_palace)
-    sumo_agent = SumoAgent(episode_timesteps, "Tiradentes__Visconde_de_Morais", "Tiradentes__Visconde_de_Morais")
+    sumo_agent = SumoAgent(episode_timesteps,
+                           "Presidente_Pedreira__Pereira_Nunes",
+                           ("Presidente_Pedreira__Nilo_Pecanha", "Presidente_Pedreira__Paulo_Alves"))
 
     time_mean = 0
     sim_start_time = time.clock()
