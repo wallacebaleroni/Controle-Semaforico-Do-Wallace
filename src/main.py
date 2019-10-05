@@ -92,7 +92,7 @@ if __name__ == '__main__':
                controlled_tls['id'], controlled_tls['waiting_time']))
         print("\tMonitored TLSs:")
         for tls in monitored_tls:
-            print("\t\t%s: %d seconds\n" % (tls['id'], tls['waiting_time']))
+            print("\t\t%s: %d seconds" % (tls['id'], tls['waiting_time']))
 
         main_log_message = "%d\t%d" % (episode_num + 1, controlled_tls['waiting_time'])
         secondary_log_message = ""

@@ -20,6 +20,9 @@ VERTICAL_GREEN = 1
 
 class SumoAgent:
     def __init__(self, episode_timesteps, controlled_tls_id, monitored_tls_ids=(), seed=None):
+        logging.info('Controlled TLS: %s' % controlled_tls_id)
+        logging.info('Monitored TLS ' + str(monitored_tls_ids))
+
         self.episode_timesteps = episode_timesteps  # Number of time steps per episode
         if seed is not None:
             random.seed(seed)  # Make tests reproducible
