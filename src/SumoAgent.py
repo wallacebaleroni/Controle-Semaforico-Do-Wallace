@@ -3,6 +3,7 @@ import optparse
 import random
 import numpy as np
 import traci
+import logging
 
 # Constraints
 VGHR = 0  # vertical green  horizontal red
@@ -231,7 +232,7 @@ class SumoAgent:
     def end_sim(self):
         traci.close(wait=False)
 
-        return self.controlled_tls['waiting_time']
+        return self.controlled_tls, self.monitored_tls
 
     def __update_waiting_times(self):
         self.controlled_tls['waiting_time'] += (traci.edge.getLastStepHaltingNumber(self.controlled_tls['vertical_edge']) +
