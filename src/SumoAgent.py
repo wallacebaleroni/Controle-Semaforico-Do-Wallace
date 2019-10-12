@@ -235,7 +235,7 @@ class SumoAgent:
         next_tls = traci.vehicle.getNextTLS(vehicle)[0]
 
         if next_tls[0] != self.controlled_tls['id']:
-            return "Incorrect semaphore: The first position form getNextTLS isn't returning the expected TLS"
+            return "Incorrect semaphore: The first position from getNextTLS isn't returning the expected TLS"
 
         return next_tls[2]
 
