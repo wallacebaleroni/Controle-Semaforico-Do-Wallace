@@ -15,8 +15,8 @@
     </routing>
 
     <report>
-        <verbose value="true"/>
-        <duration-log.statistics value="true"/>
+        <verbose value="false"/>
+        <duration-log.statistics value="false"/>
         <no-step-log value="true"/>
     </report>
 

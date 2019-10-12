@@ -3,11 +3,9 @@ import optparse
 import random
 import numpy as np
 import traci
+import logging
 
 # Constraints
-X = 0
-Y = 1
-
 VGHR = 0  # vertical green  horizontal red
 VYHR = 1  # vertical yellow horizontal red
 VRHG = 2  # vertical red    horizontal green
@@ -22,6 +20,9 @@ VERTICAL_GREEN = 1
 
 class SumoAgent:
     def __init__(self, episode_timesteps, controlled_tls_id, monitored_tls_ids=(), seed=None):
+        logging.info('Controlled TLS: %s' % controlled_tls_id)
+        logging.info('Monitored TLS ' + str(monitored_tls_ids))
+
         self.episode_timesteps = episode_timesteps  # Number of time steps per episode
         if seed is not None:
             random.seed(seed)  # Make tests reproducible
@@ -40,10 +41,11 @@ class SumoAgent:
             self.sumoBinary = checkBinary('sumo-gui')
         self.generate_routefile()
 
-        self.controlled_tls = {'id': controlled_tls_id, 'waiting_time': 0}
+        self.controlled_tls = {'id': controlled_tls_id, 'waiting_time': 0,
+                               'horizontal_edge': None, 'vertical_edge': None}
 
         self.monitored_tls = []
-        if type(monitored_tls_ids) != list:
+        if type(monitored_tls_ids) == str:
             self.monitored_tls.append({'id': monitored_tls_ids, 'waiting_time': 0,
                                        'horizontal_edge': None, 'vertical_edge': None})
         else:
@@ -62,18 +64,18 @@ class SumoAgent:
 
     @staticmethod
     def generate_routefile():
-        number_of_vehicles = {'UFF__UFF__retorno': 150,
-                              'UFF__icarai_meio': 400,
-                              'UFF__praia_icarai': 100,
-                              'centro__praia_icarai': 1800,
-                              'icarai_meio__centro': 500,
-                              'icarai_meio__icarai_praia': 200,
-                              'praia_icarai__UFF': 1000,
-                              'praia_icarai__centro': 1800,
+        number_of_vehicles = {'UFF__UFF__retorno': 60,
+                              'UFF__icarai_meio': 160,
+                              'UFF__praia_icarai': 40,
+                              'centro__praia_icarai': 720,
+                              'icarai_meio__centro': 200,
+                              'icarai_meio__icarai_praia': 80,
+                              'praia_icarai__UFF': 400,
+                              'praia_icarai__centro': 720,
                               'MAC__icarai_meio': 100,
                               'MAC__centro': 100,
                               'icarai_meio__MAC': 100}
-        multiplier = 0.6
+        multiplier = 1
 
         with open("../sim/inga/inga.rou.xml", "w") as routes:
             print('''<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">''', file=routes)
@@ -86,7 +88,7 @@ class SumoAgent:
             print('''\t<route id="praia_icarai__UFF" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Tiradentes#1 Tiradentes#2 Tiradentes#3 Tiradentes#4" color="yellow"/>''', file=routes)
             print('''\t<route id="praia_icarai__centro" edges="Paulo_Alves#1 Paulo_Alves#2 Paulo_Alves#3 Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="green"/>''', file=routes)
             print('''\t<route id="MAC__icarai_meio" edges="Nilo_Pecanha#0 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Fagundes_Varela#1" color="255,255,255"/>''', file=routes)
-            print('''\t<route id="MAC__centro" edges="Nilo_Pecanha#0 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="0,0,0"/>''', file=routes)
+            print('''\t<route id="MAC__centro" edges="Nilo_Pecanha#0 Presidente_Pedreira#4 Presidente_Pedreira#5 Presidente_Pedreira#6L Paulo_Alves#4 Paulo_Alves#5 Sao_Sebastiao#1" color="128,0,128"/>''', file=routes)
             print('''\t<route id="icarai_meio__MAC" edges="Fagundes_Varela#-1 Tiradentes#1 Pereira_Nunes#1 Pereira_Nunes#2" color="127,127,127"/>''', file=routes)
             print("")
 
@@ -107,8 +109,10 @@ class SumoAgent:
     def start_sim(self):
         traci.start([self.sumoBinary, "-c", "../sim/inga/inga.sumocfg", '--start', '--quit-on-end'])
 
+        self.controlled_tls['waiting_time'] = 0
         self.__set_influenced_edges(self.controlled_tls)
         for tls in self.monitored_tls:
+            tls['waiting_time'] = 0
             self.__set_influenced_edges(tls)
 
     @staticmethod
@@ -123,7 +127,7 @@ class SumoAgent:
                 edges.append(lane[:-2])
 
         if len(edges) > 2:
-            print("WARNING: TLS %s influences more than 2 adges")
+            print("WARNING: TLS %s influences %d edges, it should influence 2" % (tls['id'], len(edges)))
 
         tls['horizontal_edge'] = edges[0]
         tls['vertical_edge'] = edges[1]
@@ -138,8 +142,8 @@ class SumoAgent:
         cell_length = 7
         speed_limit = 14
 
-        vehicles_road1 = traci.edge.getLastStepVehicleIDs(self.controlled_tls['horizontal_edge'])
-        vehicles_road2 = traci.edge.getLastStepVehicleIDs(self.controlled_tls['vertical_edge'])
+        vehicles_road1 = traci.edge.getLastStepVehicleIDs(self.controlled_tls['vertical_edge'])
+        vehicles_road2 = traci.edge.getLastStepVehicleIDs(self.controlled_tls['horizontal_edge'])
 
         for v in vehicles_road1:
             next_tls_distance = self.__get_next_tls_distance(v)
@@ -203,16 +207,17 @@ class SumoAgent:
                 steps_elapsed += 1
 
         # Calculates reward using the halting cars in the halted edges and all the cars in the moving edges
-        self.reward_moving = self.__get_num_of_moving_vehicles(moving_horizontal)
-        self.reward_halting = self.__get_num_of_halting_vehicles(not moving_horizontal)
+        self.reward_moving = self.__get_num_of_moving_vehicles(not moving_horizontal)
+        self.reward_halting = self.__get_num_of_halting_vehicles(moving_horizontal)
 
         for i in range(self.green_light_time):
             traci.trafficlight.setPhase(self.controlled_tls['id'], phase)
 
             self.__update_waiting_times()
+
             # Updates reward
-            self.reward_moving += self.__get_num_of_moving_vehicles(moving_horizontal)
-            self.reward_halting += self.__get_num_of_halting_vehicles(not moving_horizontal)
+            self.reward_moving += self.__get_num_of_moving_vehicles(not moving_horizontal)
+            self.reward_halting += self.__get_num_of_halting_vehicles(moving_horizontal)
 
             traci.simulationStep()
             steps_elapsed += 1
@@ -248,12 +253,12 @@ class SumoAgent:
 
     def __get_num_of_moving_vehicles(self, horizontal=True):
         if horizontal:
-            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['vertical_edge'])
-        else:
             return traci.edge.getLastStepVehicleNumber(self.controlled_tls['horizontal_edge'])
+        else:
+            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['vertical_edge'])
 
     def __get_num_of_halting_vehicles(self, horizontal=True):
         if horizontal:
-            return traci.edge.getLastStepHaltingNumber(self.controlled_tls['vertical_edge'])
+            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['horizontal_edge'])
         else:
-            return traci.edge.getLastStepHaltingNumber(self.controlled_tls['horizontal_edge'])
+            return traci.edge.getLastStepVehicleNumber(self.controlled_tls['vertical_edge'])

@@ -1,5 +1,6 @@
 import sys
 import time
+import logging
 
 from src.DeepQNetworkAgent import DeepQNetworkAgent
 from src.SumoAgent import SumoAgent
@@ -21,22 +22,31 @@ if __name__ == '__main__':
         sys.exit("Please declare environment variable 'SUMO_HOME' as the root directory of your sumo " +
                  "installation (it should contain folders 'bin', 'tools' and 'docs')")
 
+    # Configure log
+    logging.basicConfig(level=logging.DEBUG, filename='log.l', filemode='a', format='%(levelname)s - %(message)s')
+    logging.info('Starting simulation')
+
     # Simulation parameters
     episode_timesteps = 3600
     episodes = 25
     batch_size = 32
     use_memory_palace = True
 
+    # Log parameters
+    logging.info('Batch size: %d' % batch_size)
+
     # DNN Agent
     # Initialize DNN with random weights
     # Initialize target network with same weights as DNN Network
     network_agent = DeepQNetworkAgent(use_memory_palace)
-    sumo_agent = SumoAgent(episode_timesteps, "Tiradentes__Visconde_de_Morais", "Tiradentes__Visconde_de_Morais")
+    sumo_agent = SumoAgent(episode_timesteps,
+                           "Presidente_Pedreira__Pereira_Nunes",
+                           ("Presidente_Pedreira__Nilo_Pecanha", "Presidente_Pedreira__Paulo_Alves"))
 
     time_mean = 0
     sim_start_time = time.clock()
+
     for episode_num in range(episodes):
-        log = open('log.txt', 'a')
         epi_start_time = time.clock()
 
         steps = 0
@@ -72,25 +82,25 @@ if __name__ == '__main__':
         epi_time = epi_end_time - epi_start_time
         time_mean = ((time_mean * episode_num) + epi_time) / (episode_num + 1)
 
-        controled_tls, monitored_tls = sumo_agent.end_sim()
+        controlled_tls, monitored_tls = sumo_agent.end_sim()
 
         print("\nEpisode: %d\n"
-              "\tTotal waiting on main TLS time: %d seconds\n"
               "\tEpisode length: %d seconds\n"
-              "\tExpected sim end in: %d minutes" %
-              (episode_num + 1, controled_tls['waiting_time'], epi_time,
-               (time_mean * ((episodes - episode_num) - 1)) / 60))
+              "\tExpected sim end in: %d minutes\n"
+              "\tControlled TLS: %s\n"
+              "\t\tTotal waiting time: %d seconds" %
+              (episode_num + 1, epi_time,
+               (time_mean * ((episodes - episode_num) - 1)) / 60,
+               controlled_tls['id'], controlled_tls['waiting_time']))
+        print("\tMonitored TLSs:")
         for tls in monitored_tls:
-            print("\tTotal waiting time on %s: %d seconds" % (tls['id'], tls['waiting_time']))
+            print("\t\t%s: %d seconds" % (tls['id'], tls['waiting_time']))
 
-        main_message = "Episode:\t%d\tTotal waiting time:\t%d" % (episode_num + 1, controled_tls['waiting_time'])
-        secondary_message = ""
+        main_log_message = "%d\t%d" % (episode_num + 1, controlled_tls['waiting_time'])
+        secondary_log_message = ""
         for tls in monitored_tls:
-            secondary_message += "\tWaiting time on %s:\t%d" % (tls['id'], tls['waiting_time'])
-        secondary_message += '\n'
-
-        log.write(main_message + secondary_message)
-        log.close()
+            secondary_log_message += "\t%d" % tls['waiting_time']
+        logging.info(main_log_message + secondary_log_message)
 
     sim_end_time = time.clock()
 

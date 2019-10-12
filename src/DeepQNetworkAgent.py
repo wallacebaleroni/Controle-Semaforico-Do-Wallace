@@ -2,6 +2,7 @@ from collections import deque
 import random
 import numpy as np
 import keras
+import logging
 from keras.layers import Input, Conv2D, Flatten, Dense
 from keras.models import Model
 
@@ -14,6 +15,12 @@ class DeepQNetworkAgent:
         self.model = self._build_model()
         self.action_size = 2
         self.memory_palace = memory_palace
+
+        logging.info('Gamma: %f' % self.gamma)
+        logging.info('Epsilon: %f' % self.epsilon)
+        logging.info('Learning Rate: %f' % self.learning_rate)
+        logging.info('Memory Palace: %s' % self.memory_palace)
+
         if self.memory_palace:
             # state/action
             # [[green_north_south/green_east_west, green_north_south/green_north_south],
