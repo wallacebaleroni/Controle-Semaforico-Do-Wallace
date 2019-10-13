@@ -8,10 +8,10 @@ from keras.models import Model
 
 
 class DeepQNetworkAgent:
-    def __init__(self, memory_palace):
-        self.gamma = 0.95  # Discount rate
-        self.epsilon = 0.1  # Exploration rate
-        self.learning_rate = 0.0002
+    def __init__(self, gamma, epsilon, learning_rate, memory_palace):
+        self.gamma = gamma  # Discount rate
+        self.epsilon = epsilon  # Exploration rate
+        self.learning_rate = learning_rate
         self.memory_palace = memory_palace
 
         logging.info('Gamma: %f' % self.gamma)

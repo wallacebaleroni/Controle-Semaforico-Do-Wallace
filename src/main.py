@@ -32,13 +32,18 @@ if __name__ == '__main__':
     batch_size = 32
     use_memory_palace = True
 
+    # Network parameters
+    gamma = 0.95
+    epsilon = 0.1
+    learning_rate = 0.0002
+
     # Log parameters
     logging.info('Batch size: %d' % batch_size)
 
     # DNN Agent
     # Initialize DNN with random weights
     # Initialize target network with same weights as DNN Network
-    network_agent = DeepQNetworkAgent(use_memory_palace)
+    network_agent = DeepQNetworkAgent(gamma, epsilon, learning_rate, use_memory_palace)
     sumo_agent = SumoAgent(episode_timesteps,
                            "Presidente_Pedreira__Pereira_Nunes",
                            ("Presidente_Pedreira__Nilo_Pecanha", "Presidente_Pedreira__Paulo_Alves"))
