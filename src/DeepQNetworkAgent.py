@@ -12,14 +12,15 @@ class DeepQNetworkAgent:
         self.gamma = 0.95  # Discount rate
         self.epsilon = 0.1  # Exploration rate
         self.learning_rate = 0.0002
-        self.model = self._build_model()
-        self.action_size = 2
         self.memory_palace = memory_palace
 
         logging.info('Gamma: %f' % self.gamma)
         logging.info('Epsilon: %f' % self.epsilon)
         logging.info('Learning Rate: %f' % self.learning_rate)
         logging.info('Memory Palace: %s' % self.memory_palace)
+
+        self.model = self._build_model()
+        self.action_size = 2
 
         if self.memory_palace:
             # state/action
