@@ -19,7 +19,7 @@ class DeepQNetworkAgent:
         logging.info('Learning Rate: %f' % self.learning_rate)
         logging.info('Memory Palace: %s' % self.memory_palace)
 
-        self.model = self._build_model()
+        self.model = self.__build_model()
         self.action_size = 2
 
         if self.memory_palace:
@@ -31,7 +31,7 @@ class DeepQNetworkAgent:
         else:
             self.memory = deque(maxlen=200)
 
-    def _build_model(self):
+    def __build_model(self):
         # Neural Net for Deep-Q learning Model
 
         # Position P
