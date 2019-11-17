@@ -1,7 +1,7 @@
 .idea/
 */__pycache__
 
-log.txt
+*.l
 net-to-plain.bat
 plain-to-net.bat
 anotacoes.txt

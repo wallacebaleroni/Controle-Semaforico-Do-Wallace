@@ -32,10 +32,13 @@ if __name__ == '__main__':
     batch_size = 32
     use_memory_palace = True
 
+    # Leave the phase switching to SUMO
+    use_SUMO_tls = False
+
     # Network parameters
     gamma = 0.95
-    epsilon = 0.1
-    learning_rate = 0.0002
+    epsilon = 0.01
+    learning_rate = 0.00002
 
     # Log parameters
     logging.info('Batch size: %d' % batch_size)
@@ -65,7 +68,10 @@ if __name__ == '__main__':
             # Gets an action accordingly to current state
             action = network_agent.act(state)
             # Executes action on simulation
-            steps += sumo_agent.act_semaphore(action)
+            if use_SUMO_tls:
+                steps += sumo_agent.act_semaphore_sumo()
+            else:
+                steps += sumo_agent.act_semaphore(action)
             # Gets next state
             next_state = sumo_agent.get_state()
             # Gets reward from last action
@@ -73,12 +79,13 @@ if __name__ == '__main__':
             # Stores states for network tunning
             network_agent.remember(state, action, reward, next_state, False)
 
-            if use_memory_palace:
-                if network_agent.get_memory_size() > batch_size:
-                    network_agent.replay(batch_size)
-            else:
-                if len(network_agent.memory) > batch_size:
-                    network_agent.replay(batch_size)
+            if not use_SUMO_tls:
+                if use_memory_palace:
+                    if network_agent.get_memory_size() > batch_size:
+                        network_agent.replay(batch_size)
+                else:
+                    if len(network_agent.memory) > batch_size:
+                        network_agent.replay(batch_size)
 
             print_progress_bar(steps, episode_timesteps, 20)
         print_progress_bar(episode_timesteps, episode_timesteps, 19)

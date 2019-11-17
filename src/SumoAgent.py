@@ -176,6 +176,12 @@ class SumoAgent:
         self.state = [position, velocity, lgts]
         return self.state
 
+    def act_semaphore_sumo(self):
+        self.__update_waiting_times()
+        traci.simulationStep()
+
+        return 1
+
     def act_semaphore(self, action, horizontal_light_state=None):
         if horizontal_light_state is None:
             horizontal_light_state = self.state[2][0][0][0]
