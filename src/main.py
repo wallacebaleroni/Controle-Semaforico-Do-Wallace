@@ -39,6 +39,7 @@ if __name__ == '__main__':
     gamma = 0.95
     epsilon = 0.01
     learning_rate = 0.00002
+    use_previous_model = True
 
     # Log parameters
     logging.info('Batch size: %d' % batch_size)
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     # DNN Agent
     # Initialize DNN with random weights
     # Initialize target network with same weights as DNN Network
-    network_agent = DeepQNetworkAgent(gamma, epsilon, learning_rate, use_memory_palace)
+    network_agent = DeepQNetworkAgent(gamma, epsilon, learning_rate, use_memory_palace, use_previous_model)
     sumo_agent = SumoAgent(episode_timesteps,
                            "Presidente_Pedreira__Pereira_Nunes",
                            ("Presidente_Pedreira__Nilo_Pecanha", "Presidente_Pedreira__Paulo_Alves"))
@@ -89,6 +90,8 @@ if __name__ == '__main__':
 
             print_progress_bar(steps, episode_timesteps, 20)
         print_progress_bar(episode_timesteps, episode_timesteps, 19)
+
+        network_agent.save()
 
         epi_end_time = time.clock()
         epi_time = epi_end_time - epi_start_time

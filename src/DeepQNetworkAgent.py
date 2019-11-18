@@ -8,7 +8,7 @@ from keras.models import Model
 
 
 class DeepQNetworkAgent:
-    def __init__(self, gamma, epsilon, learning_rate, memory_palace):
+    def __init__(self, gamma, epsilon, learning_rate, memory_palace, use_previous_model):
         self.gamma = gamma  # Discount rate
         self.epsilon = epsilon  # Exploration rate
         self.learning_rate = learning_rate
@@ -20,6 +20,9 @@ class DeepQNetworkAgent:
         logging.info('Memory Palace: %s' % self.memory_palace)
 
         self.model = self.__build_model()
+        if use_previous_model:
+            self.load()
+
         self.action_size = 2
 
         if self.memory_palace:
@@ -119,8 +122,8 @@ class DeepQNetworkAgent:
                 size += len(self.memory[state_index][action_index])
         return size
 
-    def load(self, name):
-        self.model.load_weights(name)
+    def load(self):
+        self.model.load_weights("model.HDF5")
 
-    def save(self, name):
-        self.model.save_weights(name)
+    def save(self):
+        self.model.save_weights("model.HDF5")
