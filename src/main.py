@@ -39,7 +39,7 @@ if __name__ == '__main__':
     gamma = 0.95
     epsilon = 0.01
     learning_rate = 0.00002
-    use_previous_model = True
+    use_previous_model = False
 
     # Log parameters
     logging.info('Batch size: %d' % batch_size)
